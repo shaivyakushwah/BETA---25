@@ -296,10 +296,45 @@ export async function exportAllClient(): Promise<string> {
 }
 
 export async function addJobFromTextAction(formData: FormData) {
-  const text = String(formData.get("description") ?? "").trim();
-  const title = String(formData.get("title") ?? "Pasted listing").trim();
-  const company = String(formData.get("company") ?? "Unknown employer").trim();
-  if (text.length < 80) return;
+  let text = String(formData.get("description") ?? "").trim();
+  let title = String(formData.get("title") ?? "").trim();
+  let company = String(formData.get("company") ?? "").trim();
+  let sourceUrl = "";
+
+  if (/^https?:\/\//i.test(text)) {
+    sourceUrl = text;
+    try {
+      const res = await fetch(text, {
+        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)" },
+        signal: AbortSignal.timeout(6000),
+      });
+      if (res.ok) {
+        const html = await res.text();
+        if (!title) {
+          const match = html.match(/<title[^>]*>(.*?)<\/title>/i);
+          if (match) title = match[1].replace(/[\r\n\t]+/g, " ").trim().slice(0, 80);
+        }
+        const stripped = html
+          .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, " ")
+          .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, " ")
+          .replace(/<[^>]+>/g, " ")
+          .replace(/&nbsp;/g, " ")
+          .replace(/&amp;/g, "&")
+          .replace(/&quot;/g, '"')
+          .replace(/\s+/g, " ")
+          .trim();
+        if (stripped.length >= 60) {
+          text = stripped.slice(0, 10000);
+        }
+      }
+    } catch {
+      // Fallback to text as entered
+    }
+  }
+
+  if (!title) title = "Imported listing";
+  if (!company) company = "Direct employer";
+  if (text.length < 50) return;
 
   // Use the same skill lexicon as everything else, so a pasted listing is scored
   // on the skills it actually names rather than on arbitrary words.
@@ -323,8 +358,8 @@ export async function addJobFromTextAction(formData: FormData) {
     expiresAt: null,
     repostCount: 0,
     filledDaysAgo: null,
-    source: "Pasted by candidate",
-    sourceUrl: "",
+    source: sourceUrl ? "Imported from URL" : "Pasted by candidate",
+    sourceUrl,
   });
   refresh();
   redirect("/jobs");

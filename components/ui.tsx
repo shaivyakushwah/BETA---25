@@ -109,10 +109,12 @@ export function Meter({ value, max = 100, tone }: { value: number; max?: number;
 
 export function salaryLabel(job: Job): string | null {
   if (!job.salaryMin) return null;
+  const curr = job.currency || "INR";
+  const symbol = curr === "INR" || curr === "Rs" ? "₹" : curr === "USD" ? "$" : curr === "EUR" ? "€" : curr === "GBP" ? "£" : `${curr} `;
   const min = Math.round(job.salaryMin / 1000);
   const max = job.salaryMax ? Math.round(job.salaryMax / 1000) : null;
-  if (!max || max === min) return `£${min}k`;
-  return `£${min}–${max}k`;
+  if (!max || max === min) return `${symbol}${min}k`;
+  return `${symbol}${min}–${max}k`;
 }
 
 export function JobMeta({ job }: { job: Job }) {

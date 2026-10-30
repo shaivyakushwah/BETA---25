@@ -109,6 +109,54 @@ export function ApplicationWorkspace({ application, job, catalog, discarded, unc
     URL.revokeObjectURL(url);
   };
 
+  const printPack = () => {
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+    const selectedCites = catalog.filter((c) => selected.has(c.id));
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>${job.company} - Application Pack</title>
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 40px; color: #222; max-width: 800px; margin: 0 auto; line-height: 1.6; }
+            h1 { font-size: 22px; margin-bottom: 4px; }
+            .meta { font-size: 13px; color: #666; margin-bottom: 24px; border-bottom: 1px solid #ddd; padding-bottom: 12px; }
+            h2 { font-size: 15px; margin-top: 24px; color: #333; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #eee; padding-bottom: 4px; }
+            .section-box { white-space: pre-wrap; font-size: 14px; background: #fafafa; padding: 14px; border: 1px solid #e5e5e5; border-radius: 6px; }
+            .provenance { font-size: 12px; color: #444; background: #eef6f2; border-left: 3px solid #2a8; padding: 8px 12px; margin: 6px 0; border-radius: 0 4px 4px 0; }
+            @media print { body { padding: 0; } .section-box { border: none; padding: 0; background: transparent; } }
+          </style>
+        </head>
+        <body>
+          <h1>Application Pack: ${job.title}</h1>
+          <div class="meta">${job.company} · ${job.location} · Verified Line-Grounded Materials</div>
+          
+          ${coverLetter.trim() ? `
+            <h2>Cover Letter Draft</h2>
+            <div class="section-box">${coverLetter.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>
+          ` : ""}
+
+          <h2>Tailored Application Draft</h2>
+          <div class="section-box">${draft.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>
+
+          <h2>Resume Line Provenance Audit Trail (${selectedCites.length} verified points)</h2>
+          ${selectedCites.map((c) => `
+            <div class="provenance">
+              <strong>Line ${c.line} (${c.section}):</strong> "${c.quote.replace(/</g, "&lt;")}"<br/>
+              <em>Verified match for: ${c.forRequirement}</em>
+            </div>
+          `).join("")}
+
+          <script>
+            window.onload = function() { window.print(); }
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
   const recorded = Boolean(application.submittedAt) || submitState.ok;
   const canSubmit = acknowledged && typed === "SUBMIT" && draft.trim().length >= 40;
 
@@ -238,7 +286,10 @@ export function ApplicationWorkspace({ application, job, catalog, discarded, unc
             Save draft
           </button>
           <button className="btn" type="button" onClick={copy}>
-            Copy
+            Copy text
+          </button>
+          <button className="btn btn-primary" type="button" onClick={printPack}>
+            🖨️ Print / Save PDF Pack
           </button>
           <button className="btn" type="button" onClick={download}>
             Download .txt

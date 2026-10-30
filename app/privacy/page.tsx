@@ -164,6 +164,26 @@ async function Privacy() {
                 </li>
               ))}
             </ul>
+
+            <div style={{ marginTop: 24, paddingTop: 16, borderTop: "1px solid var(--color-line)" }}>
+              <h3 style={{ fontSize: 16, margin: "0 0 10px", color: "var(--color-ink)" }}>
+                What we deliberately did NOT build (and why)
+              </h3>
+              <div style={{ display: "grid", gap: 10, fontSize: 13 }}>
+                <div style={{ background: "#fbf9f2", padding: "10px 12px", borderRadius: 4, border: "1px solid var(--color-line)" }}>
+                  <strong>1. Blind Auto-Apply Bot:</strong> Auto-submitting to 500 portals burns candidate reputation, trips ATS spam filters, and breaks the human-in-the-loop guarantee. We generate pre-flight materials in seconds, but require final human verification.
+                </div>
+                <div style={{ background: "#fbf9f2", padding: "10px 12px", borderRadius: 4, border: "1px solid var(--color-line)" }}>
+                  <strong>2. Hallucinated / Invented Skills:</strong> LLMs tend to invent experiences to force a match. We built a strict line-provenance parser that only cites existing resume lines and explicitly warns against unbacked claims.
+                </div>
+                <div style={{ background: "#fbf9f2", padding: "10px 12px", borderRadius: 4, border: "1px solid var(--color-line)" }}>
+                  <strong>3. Silent Job Discarding:</strong> When a listing is doubtful or a copy, other platforms hide it. We surface the exact suspicion flags and let the candidate decide.
+                </div>
+                <div style={{ background: "#fbf9f2", padding: "10px 12px", borderRadius: 4, border: "1px solid var(--color-line)" }}>
+                  <strong>4. Central Cloud Resume Database:</strong> Storing user career histories on a remote cloud invites leaks. A local-first SQLite model ensures zero third-party exposure.
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 

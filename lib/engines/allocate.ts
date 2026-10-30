@@ -79,10 +79,33 @@ export function planWeek(
     }
   }
 
+  // Fallback for thin or transitioning profiles:
+  // Requirement 1: "A first-year student, or someone switching fields, should still get useful suggestions, not an empty list."
+  if (applyNow.length === 0 && scored.length > 0) {
+    const emerging = scored
+      .filter((row) => row.insight.trust.verdict !== "doubtful" && (row.insight.job.seniority === "intern" || row.insight.job.seniority === "junior" || row.worth > 0))
+      .slice(0, 3);
+    for (const row of emerging) {
+      if (minutesUsed + row.insight.minutes <= budgetMinutes || applyNow.length === 0) {
+        applyNow.push(row.insight);
+        minutesUsed += row.insight.minutes;
+      }
+    }
+    const count: number = Number(applyNow.length);
+    if (count > 0) {
+      rationale.push(
+        `Emerging or transitional profile: Showing ${count} high-potential entry role${count > 1 ? "s" : ""} with transferable skill overlap so you never face an empty list.`,
+      );
+    }
+  }
+
+  const applyNowIds = new Set(applyNow.map((a) => a.job.id));
+
   const skip: SkipEntry[] = [];
   let alreadySent = 0;
   for (const insight of insights) {
     if (insight.decision === "apply") continue;
+    if (applyNowIds.has(insight.job.id)) continue;
     // Already sent? It belongs in the pipeline, not in "leave these alone".
     if (excludeJobIds.has(insight.job.id)) {
       alreadySent += 1;

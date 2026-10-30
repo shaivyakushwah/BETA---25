@@ -4,6 +4,7 @@ import { getWorkspace } from "@/lib/insights";
 import { saveProfileAction } from "@/app/actions";
 import { skillLabel } from "@/lib/skills";
 import { PageHeader, SectionTitle } from "@/components/ui";
+import { ResumeUpload } from "@/components/resume-upload";
 
 export default function Page() {
   return (
@@ -74,7 +75,7 @@ async function Profile() {
             </div>
             <div>
               <label className="field" htmlFor="minSalary">
-                Salary floor (£)
+                Salary floor (₹ / $ / £)
               </label>
               <input
                 className="input"
@@ -109,8 +110,9 @@ async function Profile() {
 
           <div>
             <label className="field" htmlFor="resume">
-              Resume text — plain text is fine
+              Resume text — upload a file or paste text
             </label>
+            <ResumeUpload />
             <textarea className="textarea" id="resume" name="resume" rows={22} defaultValue={ws.resumeText} />
             <p className="mono-xs" style={{ color: "var(--color-ink-faint)", marginTop: 3 }}>
               Line numbers are preserved exactly, because every suggestion points back to one.
