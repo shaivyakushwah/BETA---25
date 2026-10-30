@@ -31,27 +31,33 @@ async function SidebarFooter() {
   return (
     <div style={{ marginTop: "auto" }}>
       {pending > 0 ? (
-        <p className="mono-xs" style={{ color: "#96550f", marginBottom: 10 }}>
-          {pending} update{pending === 1 ? "" : "s"} waiting for your OK
-        </p>
+        <div style={{ background: "var(--color-warn-soft)", border: "1px solid var(--color-warn-border)", borderRadius: 8, padding: "8px 10px", marginBottom: 12 }}>
+          <p className="mono-xs" style={{ color: "var(--color-warn)", margin: 0, fontWeight: 600 }}>
+            🔔 {pending} update{pending === 1 ? "" : "s"} waiting for confirmation
+          </p>
+        </div>
       ) : null}
-      <div className="card" style={{ padding: "12px 13px", background: "#f1eee4" }}>
-        <p style={{ margin: 0, fontSize: 13, fontWeight: 500 }}>{ws.candidate.name}</p>
-        <p style={{ margin: "2px 0 0", fontSize: 11.5, color: "var(--color-ink-soft)" }}>
-          {ws.candidate.hoursPerWeek} h/week · {ws.market.sample} listings sampled
-        </p>
-        <p
-          className="mono-xs"
-          style={{ margin: "8px 0 0", color: provider.available ? "var(--color-accent)" : "var(--color-ink-faint)" }}
-          title={provider.note}
-        >
-          {provider.available ? "Gemini connected" : "Local engine"}
-        </p>
+      <div className="card" style={{ padding: "14px", background: "#f8fafc", borderRadius: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ width: 34, height: 34, borderRadius: "50%", background: "linear-gradient(135deg, #2563eb, #059669)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 13 }}>
+            {ws.candidate.name.charAt(0) || "U"}
+          </div>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <p style={{ margin: 0, fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ws.candidate.name}</p>
+            <p style={{ margin: 0, fontSize: 11, color: "var(--color-ink-faint)" }}>
+              {ws.candidate.hoursPerWeek}h/wk · {ws.market.sample} jobs
+            </p>
+          </div>
+        </div>
+        <div style={{ marginTop: 10, paddingTop: 8, borderTop: "1px solid var(--color-line)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span className="mono-xs" style={{ color: provider.available ? "var(--color-accent)" : "var(--color-ink-soft)", fontWeight: 550 }} title={provider.note}>
+            ● {provider.available ? "Gemini Active" : "Local Engine"}
+          </span>
+          <span className="mono-xs" style={{ color: "var(--color-ink-faint)", fontSize: 10 }}>v1.0</span>
+        </div>
       </div>
-      <p className="mono-xs" style={{ color: "var(--color-ink-faint)", marginTop: 10, lineHeight: 1.6 }}>
-        Nothing is sent automatically.
-        <br />
-        You approve every application.
+      <p className="mono-xs" style={{ color: "var(--color-ink-faint)", marginTop: 10, lineHeight: 1.5, textAlign: "center" }}>
+        🛡️ Zero auto-spam · 100% human confirmed
       </p>
     </div>
   );
@@ -82,18 +88,21 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <div className="shell">
           <aside className="sidebar">
             <div>
-              <p className="wordmark" style={{ margin: 0 }}>
-                Shortlist
-              </p>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <p className="wordmark" style={{ margin: 0 }}>
+                  <span style={{ color: "var(--color-brand)" }}>⚡</span> Shortlist
+                </p>
+                <span className="wordmark-badge">AI COPILOT</span>
+              </div>
               <p
                 style={{
-                  margin: "6px 0 18px",
-                  fontSize: 11.5,
+                  margin: "6px 0 16px",
+                  fontSize: 12,
                   color: "var(--color-ink-faint)",
-                  lineHeight: 1.5,
+                  lineHeight: 1.4,
                 }}
               >
-                For the hours you actually have.
+                Autonomous Career Agent & Application Engine
               </p>
             </div>
             <Suspense fallback={<NavSkeleton />}>

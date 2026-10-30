@@ -18,14 +18,31 @@ export function TrustPill({ trust, size = "md" }: { trust: TrustReport; size?: "
 }
 
 export function FitScore({ fit, compact = false }: { fit: FitReport; compact?: boolean }) {
-  const tone = fit.score >= 70 ? "var(--color-accent)" : fit.score >= 45 ? "var(--color-warn)" : "var(--color-ink-faint)";
+  const isHigh = fit.score >= 70;
+  const isMid = fit.score >= 45;
+  const bg = isHigh ? "var(--color-accent-soft)" : isMid ? "var(--color-warn-soft)" : "#f1f5f9";
+  const color = isHigh ? "var(--color-accent)" : isMid ? "var(--color-warn)" : "var(--color-ink-faint)";
+  const border = isHigh ? "var(--color-accent-border)" : isMid ? "var(--color-warn-border)" : "var(--color-line)";
+
   return (
-    <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-      <span className="num" style={{ fontSize: compact ? 15 : 22, color: tone, fontWeight: 500 }}>
-        {fit.score}
-      </span>
-      <span style={{ fontSize: 10.5, color: "var(--color-ink-faint)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-        fit
+    <div
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 5,
+        padding: compact ? "3px 9px" : "5px 12px",
+        background: bg,
+        color: color,
+        border: `1px solid ${border}`,
+        borderRadius: 999,
+        fontWeight: 650,
+        fontSize: compact ? 12 : 13.5,
+      }}
+    >
+      <span>{isHigh ? "✨" : isMid ? "⚡" : "•"}</span>
+      <span className="num">{fit.score}%</span>
+      <span style={{ fontSize: compact ? 10 : 11, textTransform: "uppercase", letterSpacing: "0.04em", opacity: 0.85 }}>
+        match
       </span>
     </div>
   );
@@ -134,33 +151,67 @@ export function JobCard({ insight, href }: { insight: JobInsight; href?: string 
     (job.filledDaysAgo !== null && job.filledDaysAgo !== undefined) ||
     Boolean(job.expiresAt && new Date(job.expiresAt) < new Date());
 
+  const initial = (job.company || "C").trim().charAt(0).toUpperCase();
+
   return (
     <Link
       href={href ?? `/jobs/${job.id}`}
       className="card"
-      style={{ display: "block", padding: "15px 16px", textDecoration: "none", opacity: closed ? 0.72 : 1 }}
+      style={{
+        display: "block",
+        padding: "18px 20px",
+        textDecoration: "none",
+        opacity: closed ? 0.72 : 1,
+        borderRadius: 12,
+      }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 14 }}>
-        <div style={{ minWidth: 0 }}>
-          <p style={{ margin: 0, fontSize: 15, fontWeight: 550, letterSpacing: "-0.01em" }}>{job.title}</p>
-          <JobMeta job={job} />
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 14, alignItems: "flex-start" }}>
+        <div style={{ display: "flex", gap: 12, alignItems: "flex-start", minWidth: 0 }}>
+          <div
+            style={{
+              width: 42,
+              height: 42,
+              borderRadius: 10,
+              background: "#f1f5f9",
+              border: "1px solid var(--color-line)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontWeight: 700,
+              fontSize: 16,
+              color: "var(--color-brand)",
+              flex: "none",
+            }}
+          >
+            {initial}
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <p style={{ margin: 0, fontSize: 16, fontWeight: 650, letterSpacing: "-0.015em", color: "var(--color-ink)" }}>
+              {job.title}
+            </p>
+            <div style={{ marginTop: 2 }}>
+              <JobMeta job={job} />
+            </div>
+          </div>
         </div>
         <div style={{ textAlign: "right", flex: "none" }}>
           <FitScore fit={fit} compact />
         </div>
       </div>
-      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 10, alignItems: "center" }}>
+      <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginTop: 12, alignItems: "center" }}>
         <TrustPill trust={trust} size="sm" />
-        <span className="pill pill-neutral">{insight.minutes} min</span>
-        {insight.decision === "skip" ? <span className="pill pill-neutral">you skipped</span> : null}
+        <span className="pill pill-neutral">⏱️ {insight.minutes} min</span>
+        {insight.decision === "skip" ? <span className="pill pill-neutral">Skipped</span> : null}
         {serious > 0 && trust.verdict !== "clear" ? (
-          <span className="mono-xs" style={{ color: "var(--color-danger)" }}>
-            {serious} serious flag{serious === 1 ? "" : "s"}
+          <span className="mono-xs" style={{ color: "var(--color-danger)", fontWeight: 600 }}>
+            🚨 {serious} warning{serious === 1 ? "" : "s"}
           </span>
         ) : null}
-        {closed ? <span className="pill pill-doubt">closed</span> : null}
+        {closed ? <span className="pill pill-doubt">Closed</span> : null}
       </div>
-      <p style={{ margin: "9px 0 0", fontSize: 12.5, color: "var(--color-ink-soft)" }}>{fit.summary}</p>
+      <p style={{ margin: "10px 0 0", fontSize: 13, color: "var(--color-ink-soft)", lineHeight: 1.5 }}>
+        {fit.summary}
+      </p>
     </Link>
   );
 }

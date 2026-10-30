@@ -3,27 +3,27 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const GROUPS: { label: string; items: { href: string; label: string; index: string }[] }[] = [
+const GROUPS: { label: string; items: { href: string; label: string; icon: string; index: string }[] }[] = [
   {
-    label: "This week",
+    label: "Core Workspace",
     items: [
-      { href: "/", label: "Plan", index: "01" },
-      { href: "/jobs", label: "Listings", index: "02" },
-      { href: "/pipeline", label: "Pipeline", index: "03" },
+      { href: "/", label: "Weekly Sprint", icon: "🎯", index: "01" },
+      { href: "/jobs", label: "AI Job Matches", icon: "💼", index: "02" },
+      { href: "/pipeline", label: "Application Tracker", icon: "📊", index: "03" },
     ],
   },
   {
-    label: "Signals",
+    label: "AI Intelligence",
     items: [
-      { href: "/updates", label: "Updates", index: "04" },
-      { href: "/insights", label: "Evidence", index: "05" },
+      { href: "/updates", label: "Status Ingestion", icon: "📬", index: "04" },
+      { href: "/insights", label: "Market & Evidence", icon: "📈", index: "05" },
     ],
   },
   {
-    label: "Account",
+    label: "Control Center",
     items: [
-      { href: "/profile", label: "Profile & resume", index: "06" },
-      { href: "/privacy", label: "Data & privacy", index: "07" },
+      { href: "/profile", label: "Profile & Resume", icon: "👤", index: "06" },
+      { href: "/privacy", label: "Trust & Storage", icon: "🛡️", index: "07" },
     ],
   },
 ];
@@ -37,8 +37,8 @@ export function SideNav() {
   return (
     <nav aria-label="Main">
       {GROUPS.map((group) => (
-        <div key={group.label} style={{ marginBottom: 18 }}>
-          <p className="eyebrow" style={{ margin: "0 0 6px 9px" }}>
+        <div key={group.label} style={{ marginBottom: 20 }}>
+          <p className="eyebrow" style={{ margin: "0 0 8px 10px", fontSize: 10 }}>
             {group.label}
           </p>
           <div className="nav-group">
@@ -49,8 +49,9 @@ export function SideNav() {
                 className="nav-link"
                 data-active={isActive(item.href)}
               >
-                <span className="nav-index">{item.index}</span>
+                <span style={{ fontSize: 14 }}>{item.icon}</span>
                 <span style={{ flex: 1 }}>{item.label}</span>
+                <span className="nav-index">{item.index}</span>
               </Link>
             ))}
           </div>

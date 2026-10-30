@@ -50,8 +50,8 @@ export function LiveImport() {
               <option value="10">10</option>
             </select>
           </div>
-          <button className="btn btn-sm" type="submit" disabled={pending}>
-            {pending ? `Fetching ${SOURCES.length} feeds…` : "Fetch listings"}
+          <button className="btn btn-primary btn-sm" type="submit" disabled={pending}>
+            {pending ? `⚡ Ingesting ${SOURCES.length} feeds...` : "⚡ Fetch Live Feed Roles"}
           </button>
         </div>
 

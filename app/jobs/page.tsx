@@ -79,54 +79,52 @@ async function Listings({ searchParams }: { searchParams: Promise<Record<string,
 
       <LiveImport />
 
-      <details className="card" style={{ padding: "12px 14px", marginBottom: 18 }}>
+      <details className="card" style={{ padding: "14px 18px", marginBottom: 20 }}>
         <summary>
-          <span className="mono-xs" style={{ color: "var(--color-ink-soft)" }}>
-            Paste a listing you found elsewhere
+          <span className="mono-xs" style={{ color: "var(--color-brand)", fontWeight: 600 }}>
+            ➕ Import a listing (Paste URL or Text)
           </span>
         </summary>
-        <p style={{ margin: "8px 0 0", fontSize: 12.5, color: "var(--color-ink-soft)", maxWidth: "76ch" }}>
-          Saw a role on a company site, a mailing list, or a jobs board we do not pull from? Paste the text and it joins
-          the same board. We cannot verify a company domain from pasted text, so it will be marked unverified until you
-          check the employer yourself. Skills are read from the wording you paste, so the more of the advert you include,
-          the more useful the fit score.
+        <p style={{ margin: "8px 0 0", fontSize: 13, color: "var(--color-ink-soft)", maxWidth: "76ch" }}>
+          Saw a role on Greenhouse, Lever, LinkedIn, or a company site? Paste the direct URL or full description text.
+          If you provide a URL, we will automatically fetch the listing content and evaluate trust and skill fit.
         </p>
         <form
           action={addJobFromTextAction}
-          style={{ display: "grid", gap: 8, marginTop: 10, gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}
+          style={{ display: "grid", gap: 10, marginTop: 12, gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}
         >
           <div>
             <label className="field" htmlFor="paste-title">
-              Job title
+              Job title (optional if URL provided)
             </label>
-            <input className="input" id="paste-title" name="title" required placeholder="Junior Frontend Developer" />
+            <input className="input" id="paste-title" name="title" placeholder="e.g. Frontend Engineer" />
           </div>
           <div>
             <label className="field" htmlFor="paste-company">
-              Company
+              Company (optional if URL provided)
             </label>
-            <input className="input" id="paste-company" name="company" required placeholder="Employer name" />
+            <input className="input" id="paste-company" name="company" placeholder="e.g. Stripe, Acme Corp" />
           </div>
           <div style={{ gridColumn: "1 / -1" }}>
             <label className="field" htmlFor="paste-description">
-              Listing text
+              Listing URL or full description text
             </label>
             <textarea
               className="textarea"
               id="paste-description"
               name="description"
               required
-              minLength={80}
-              rows={6}
-              placeholder="Paste the full advert here, including the responsibilities and requirements."
+              minLength={15}
+              rows={4}
+              placeholder="Paste https://... or the full job advert text here"
             />
           </div>
           <div style={{ gridColumn: "1 / -1", display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-            <button className="btn" type="submit">
-              Add to my board
+            <button className="btn btn-primary" type="submit">
+              ⚡ Ingest & Analyze Fit
             </button>
             <span className="mono-xs" style={{ color: "var(--color-ink-faint)" }}>
-              Nothing is sent anywhere. This only adds a record you can read and score.
+              Evaluated privately in local storage. Nothing sent to employers.
             </span>
           </div>
         </form>
