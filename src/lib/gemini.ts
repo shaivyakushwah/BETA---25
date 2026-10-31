@@ -148,162 +148,106 @@ export async function refinePrepHeadline(job: Job, planHeadline: string): Promis
 }
 
 // ==============================================================
-// 1. GEMINI RESUME SCORING ENGINE
+// 1. AUTHENTIC ATS RESUME SCORING & AUDIT ENGINE
 // ==============================================================
+
+import { auditResumeAts, type AtsScoreResult, type AtsCheckItem } from "@/lib/engines/ats-scorer";
+export type { AtsCheckItem } from "@/lib/engines/ats-scorer";
 
 export interface ResumeScoreResult {
   overallScore: number;
   headline: string;
   summary: string;
   breakdown: {
-    technicalMatch: number; // 0-30
-    experienceImpact: number; // 0-30
-    clarityStructure: number; // 0-20
-    atsReadiness: number; // 0-20
+    contactCompleteness: number; // 0-15
+    sectionStructure: number; // 0-20
+    experienceImpact: number; // 0-25
+    technicalSkills: number; // 0-25
+    atsFormatting: number; // 0-15
+    // Legacy compatibility fields
+    technicalMatch: number;
+    clarityStructure: number;
+    atsReadiness: number;
   };
+  checks: AtsCheckItem[];
+  detectedSkills: string[];
+  metricsCount: number;
+  actionVerbsCount: number;
+  wordCount: number;
   strengths: string[];
   weaknesses: string[];
   interviewReadiness: "High" | "Moderate" | "Needs Preparation";
   actionableEdits: string[];
-  source: "gemini" | "deterministic";
+  source: "ats_engine" | "gemini" | "deterministic";
 }
 
 /**
- * Evaluates resume quality, impact, and ATS readiness using Gemini API.
- * Falls back gracefully to deterministic rule scoring if no key is set.
+ * Evaluates resume quality, impact, and authentic ATS readiness across 16 algorithmic parameters.
+ * Uses deterministic ATS parsing rules (contact, headings, Google X-Y-Z metrics, keyword density, formatting)
+ * enriched by Gemini for tailored qualitative analysis.
  */
 export async function scoreResumeWithGemini(
   resumeText: string,
   targetRole?: string,
 ): Promise<ResumeScoreResult> {
+  const atsResult = auditResumeAts(resumeText, targetRole);
+
   if (!resumeText.trim()) {
     return {
-      overallScore: 0,
-      headline: "Empty Resume",
-      summary: "Upload or paste your resume text to generate an AI evaluation and ATS fit score.",
-      breakdown: { technicalMatch: 0, experienceImpact: 0, clarityStructure: 0, atsReadiness: 0 },
-      strengths: [],
-      weaknesses: ["No resume content found"],
-      interviewReadiness: "Needs Preparation",
-      actionableEdits: ["Upload a PDF or paste your resume text in the Profile tab"],
-      source: "deterministic",
+      ...atsResult,
+      source: "ats_engine",
     };
   }
 
+  // If Gemini is available, enrich with tailored high-level recruiter guidance
+  // while keeping the authentic ATS score, sub-scores, and checklist 100% grounded in real parameters!
   if (geminiAvailable()) {
-    const prompt = `You are an expert technical recruiter and resume auditor.
-Evaluate this candidate's resume ${targetRole ? `for target roles in: ${targetRole}` : "for modern engineering and tech roles"}.
+    try {
+      const prompt = `You are a Senior Technical Recruiter and ATS systems auditor.
+An authentic ATS parsing audit has evaluated this candidate's resume:
+- ATS Score: ${atsResult.overallScore}/100
+- Target Role: ${targetRole || "Software Engineering"}
+- Metrics detected: ${atsResult.metricsCount}
+- Strong action verbs: ${atsResult.actionVerbsCount}
+- Word count: ${atsResult.wordCount}
+- Key skills: ${atsResult.detectedSkills.slice(0, 8).join(", ")}
 
-Rules:
-- Be rigorous, honest, and constructive.
-- Score out of 100 overall.
-- Rate four sub-scores:
-  - technicalMatch: 0 to 30
-  - experienceImpact: 0 to 30
-  - clarityStructure: 0 to 20
-  - atsReadiness: 0 to 20
-- List 3-4 specific strengths based ONLY on what is written.
-- List 2-3 genuine areas for improvement or missing skills.
-- List 3 concrete, actionable bullet edits.
+Generate:
+1. A concise professional headline (max 8 words).
+2. A 2-sentence executive summary evaluating profile strengths against ATS hiring standards.
+3. 3 concrete, high-impact bullet edits to elevate their ATS score even further.
 
-RESUME TEXT:
-${resumeText.slice(0, 4000)}`;
+RESUME EXCERPT:
+${resumeText.slice(0, 3000)}`;
 
-    const schema = `Respond ONLY with this JSON schema:
+      const schema = `Respond ONLY with JSON:
 {
-  "overallScore": 84,
-  "headline": "Strong Frontend & Full-Stack Profile",
-  "summary": "Clear evidence of React and TypeScript work with solid project scope...",
-  "breakdown": {
-    "technicalMatch": 26,
-    "experienceImpact": 24,
-    "clarityStructure": 17,
-    "atsReadiness": 17
-  },
-  "strengths": ["Clear project descriptions with concrete libraries listed", "..."],
-  "weaknesses": ["Metrics and business outcome indicators are sparse", "..."],
-  "interviewReadiness": "High",
-  "actionableEdits": ["Quantify user impact on projects", "..."]
+  "headline": "string",
+  "summary": "string",
+  "actionableEdits": ["edit 1", "edit 2", "edit 3"]
 }`;
 
-    const raw = await generate(prompt, schema);
-    if (raw) {
-      try {
-        const parsed = JSON.parse(raw) as Partial<ResumeScoreResult>;
-        if (typeof parsed.overallScore === "number") {
+      const raw = await generate(prompt, schema);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed.headline && parsed.summary) {
           return {
-            overallScore: Math.max(10, Math.min(100, Math.round(parsed.overallScore))),
-            headline: parsed.headline || "Resume Evaluation",
-            summary: parsed.summary || "Comprehensive evaluation based on parsed resume text.",
-            breakdown: {
-              technicalMatch: Math.max(0, Math.min(30, parsed.breakdown?.technicalMatch ?? 20)),
-              experienceImpact: Math.max(0, Math.min(30, parsed.breakdown?.experienceImpact ?? 20)),
-              clarityStructure: Math.max(0, Math.min(20, parsed.breakdown?.clarityStructure ?? 15)),
-              atsReadiness: Math.max(0, Math.min(20, parsed.breakdown?.atsReadiness ?? 15)),
-            },
-            strengths: Array.isArray(parsed.strengths) ? parsed.strengths.slice(0, 5) : [],
-            weaknesses: Array.isArray(parsed.weaknesses) ? parsed.weaknesses.slice(0, 4) : [],
-            interviewReadiness:
-              parsed.interviewReadiness === "High" ||
-              parsed.interviewReadiness === "Moderate" ||
-              parsed.interviewReadiness === "Needs Preparation"
-                ? parsed.interviewReadiness
-                : parsed.overallScore >= 75
-                  ? "High"
-                  : parsed.overallScore >= 55
-                    ? "Moderate"
-                    : "Needs Preparation",
-            actionableEdits: Array.isArray(parsed.actionableEdits) ? parsed.actionableEdits.slice(0, 4) : [],
-            source: "gemini",
+            ...atsResult,
+            headline: parsed.headline || atsResult.headline,
+            summary: parsed.summary || atsResult.summary,
+            actionableEdits: Array.isArray(parsed.actionableEdits) && parsed.actionableEdits.length > 0
+              ? parsed.actionableEdits.slice(0, 4)
+              : atsResult.actionableEdits,
+            source: "ats_engine",
           };
         }
-      } catch {
-        // Fallback to deterministic
       }
+    } catch {
+      // Fallback directly to authentic ATS result
     }
   }
 
-  // Deterministic engine fallback (if Gemini API key is absent or offline)
-  const lines = resumeText.split("\n").filter((l) => l.trim().length > 0);
-  const wordCount = resumeText.split(/\s+/).length;
-  const hasMetrics = /\d+[%kK+]|\$\d+|users|saved|increased|reduced/i.test(resumeText);
-  const hasEducation = /degree|bsc|bachelor|university|college|education/i.test(resumeText);
-  const hasTech = /react|node|python|typescript|javascript|sql|aws|docker|git/i.test(resumeText);
-
-  let techScore = hasTech ? 24 : 14;
-  let expScore = hasMetrics ? 23 : 15;
-  let structScore = lines.length >= 15 && lines.length <= 80 ? 17 : 12;
-  let atsScore = wordCount >= 180 ? 16 : 10;
-  const total = techScore + expScore + structScore + atsScore;
-
-  return {
-    overallScore: total,
-    headline: total >= 75 ? "Well-Structured Technical Profile" : "Developing Profile (Room for Growth)",
-    summary:
-      "Deterministic audit: Scored on technical keyword presence, line balance, and concrete impact markers.",
-    breakdown: {
-      technicalMatch: techScore,
-      experienceImpact: expScore,
-      clarityStructure: structScore,
-      atsReadiness: atsScore,
-    },
-    strengths: [
-      hasTech ? "Recognizable engineering and tech stack keywords" : "Foundational skillset represented",
-      lines.length >= 15 ? "Healthy resume length and section structure" : "Compact, concise presentation",
-      hasEducation ? "Clear academic/educational credentials cited" : "Direct project focus",
-    ],
-    weaknesses: [
-      !hasMetrics ? "Few quantified results (e.g. latency reduced by X%, users served)" : "Could expand on production ownership",
-      lines.length < 15 ? "Sparse profile — add more project details or coursework" : "Ensure consistent bullet verb tense",
-    ],
-    interviewReadiness: total >= 75 ? "High" : total >= 55 ? "Moderate" : "Needs Preparation",
-    actionableEdits: [
-      "Add 1-2 quantified bullet points per experience item",
-      "Explicitly mention tools/frameworks next to each project",
-      "Upload your latest PDF in Profile to verify exact line provenance",
-    ],
-    source: "deterministic",
-  };
+  return atsResult;
 }
 
 // ==============================================================
