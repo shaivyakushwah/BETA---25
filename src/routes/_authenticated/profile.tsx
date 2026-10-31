@@ -8,7 +8,6 @@ import { ResumeScorer } from "@/components/resume-scorer";
 import type { ExtractedResumeData } from "@/lib/resume-parser";
 import {
   ShieldCheck,
-  AlertCircle,
   FileText,
   Linkedin,
   MapPin,
@@ -16,10 +15,8 @@ import {
   Phone,
   Pencil,
   Sparkles,
-  Zap,
   Check,
   CheckCircle2,
-  UploadCloud,
 } from "lucide-react";
 
 function Page() {
@@ -54,24 +51,26 @@ function Profile() {
   const candidate = ws.candidate;
   const [activeTab, setActiveTab] = useState<TabType>("personal");
 
-  // Controlled Profile States
-  const [candidateName, setCandidateName] = useState(candidate.name || "GAURI TIWARI");
-  const [candidateLocation, setCandidateLocation] = useState(candidate.location || "Laxmi Apartment, Gwalior, M.P");
-  const [candidateHeadline, setCandidateHeadline] = useState(
-    candidate.headline || "Electronics Engineering Student | Full Stack Developer"
-  );
-  const [personalPhone, setPersonalPhone] = useState("+91 9424473696");
-  const [personalEmail, setPersonalEmail] = useState(candidate.email || "tiwarigauriii30@gmail.com");
-  const [personalLinkedin, setPersonalLinkedin] = useState("https://www.linkedin.com/in/gauri-tiwari");
-  const [targetRolesStr, setTargetRolesStr] = useState(
-    candidate.targetRoles.join(", ") || "python, software engineer, intern, fullstack"
-  );
-  const [seniorityLevel, setSeniorityLevel] = useState(candidate.seniority || "junior");
-  const [hoursPerWeek, setHoursPerWeek] = useState(candidate.hoursPerWeek || 20);
-  const [minSalaryVal, setMinSalaryVal] = useState(candidate.minSalary ? String(candidate.minSalary) : "");
-  const [resumeContent, setResumeContent] = useState(ws.resumeText || "");
+  // Controlled Profile Candidate Info (Top Card & Tabs)
+  const [candidateName, setCandidateName] = useState(candidate.name || "");
+  const [candidateLocation, setCandidateLocation] = useState(candidate.location || "");
+  const [candidateHeadline, setCandidateHeadline] = useState(candidate.headline || "");
+  const [personalPhone, setPersonalPhone] = useState("");
+  const [personalEmail, setPersonalEmail] = useState(candidate.email || "");
+  const [personalLinkedin, setPersonalLinkedin] = useState("");
 
-  // Editable personal info state
+  // Career Preferences & Target Roles Form State - UNPREFILLED
+  const [prefName, setPrefName] = useState("");
+  const [prefLocation, setPrefLocation] = useState("");
+  const [prefEmail, setPrefEmail] = useState("");
+  const [prefHeadline, setPrefHeadline] = useState("");
+  const [prefSeniority, setPrefSeniority] = useState("");
+  const [prefHours, setPrefHours] = useState("");
+  const [prefMinSalary, setPrefMinSalary] = useState("");
+  const [prefTargetRoles, setPrefTargetRoles] = useState("");
+  const [prefResume, setPrefResume] = useState("");
+
+  // Editable personal info inline modal state
   const [isEditingPersonal, setIsEditingPersonal] = useState(false);
 
   // Status & Notification banners
@@ -181,9 +180,6 @@ function Profile() {
       setPersonalLinkedin(data.linkedin);
       localStorage.setItem("shortlist_profile_linkedin", data.linkedin);
     }
-    if (data.targetRoles && data.targetRoles.length > 0) {
-      setTargetRolesStr(data.targetRoles.join(", "));
-    }
     if (data.education && data.education.length > 0) {
       setEducationList(data.education);
       localStorage.setItem("shortlist_profile_education", JSON.stringify(data.education));
@@ -196,12 +192,9 @@ function Profile() {
       setSkillsList(data.skills);
       localStorage.setItem("shortlist_profile_skills", JSON.stringify(data.skills));
     }
-    if (data.rawText) {
-      setResumeContent(data.rawText);
-    }
 
     setExtractionAlert(
-      `Resume information extracted successfully for ${data.name || "candidate"}! Review the updated fields and click "Save Profile" below to persist changes.`
+      `Resume information extracted successfully for ${data.name || "candidate"}! Profile card, education, experience, and skills tabs have been updated.`
     );
   }
 
@@ -213,22 +206,39 @@ function Profile() {
 
     try {
       const formData = new FormData(e.currentTarget);
-      formData.set("name", candidateName);
-      formData.set("email", personalEmail);
-      formData.set("location", candidateLocation);
-      formData.set("headline", candidateHeadline);
-      formData.set("targetRoles", targetRolesStr);
-      formData.set("hours", String(hoursPerWeek));
-      formData.set("minSalary", minSalaryVal);
-      formData.set("seniority", seniorityLevel);
-      formData.set("resume", resumeContent);
+      const finalName = prefName || candidateName || candidate.name || "Job Seeker";
+      const finalLocation = prefLocation || candidateLocation || candidate.location || "";
+      const finalHeadline = prefHeadline || candidateHeadline || candidate.headline || "";
+      const finalEmail = prefEmail || personalEmail || candidate.email || "";
+
+      formData.set("name", finalName);
+      formData.set("email", finalEmail);
+      formData.set("location", finalLocation);
+      formData.set("headline", finalHeadline);
+      formData.set("targetRoles", prefTargetRoles || candidate.targetRoles.join(", "));
+      formData.set("hours", prefHours || String(candidate.hoursPerWeek || 20));
+      formData.set("minSalary", prefMinSalary || (candidate.minSalary ? String(candidate.minSalary) : ""));
+      formData.set("seniority", prefSeniority || candidate.seniority || "junior");
+      formData.set("resume", prefResume || ws.resumeText || "");
 
       // Persist to local storage
-      localStorage.setItem("shortlist_profile_name", candidateName);
-      localStorage.setItem("shortlist_profile_location", candidateLocation);
-      localStorage.setItem("shortlist_profile_headline", candidateHeadline);
+      if (finalName) {
+        setCandidateName(finalName);
+        localStorage.setItem("shortlist_profile_name", finalName);
+      }
+      if (finalLocation) {
+        setCandidateLocation(finalLocation);
+        localStorage.setItem("shortlist_profile_location", finalLocation);
+      }
+      if (finalHeadline) {
+        setCandidateHeadline(finalHeadline);
+        localStorage.setItem("shortlist_profile_headline", finalHeadline);
+      }
+      if (finalEmail) {
+        setPersonalEmail(finalEmail);
+        localStorage.setItem("shortlist_profile_email", finalEmail);
+      }
       localStorage.setItem("shortlist_profile_phone", personalPhone);
-      localStorage.setItem("shortlist_profile_email", personalEmail);
       localStorage.setItem("shortlist_profile_linkedin", personalLinkedin);
       localStorage.setItem("shortlist_profile_education", JSON.stringify(educationList));
       localStorage.setItem("shortlist_profile_experience", JSON.stringify(experienceList));
@@ -237,7 +247,7 @@ function Profile() {
       // Persist to backend Supabase database
       await saveProfileAction(formData);
 
-      setSaveSuccessMsg("✓ Profile and resume information saved successfully!");
+      setSaveSuccessMsg("✓ Profile preferences saved successfully!");
       setExtractionAlert(null);
       setTimeout(() => setSaveSuccessMsg(null), 5000);
     } catch (err: any) {
@@ -287,9 +297,16 @@ function Profile() {
     setTimeout(() => setSaveSuccessMsg(null), 3500);
   }
 
+  const displayName = candidateName || "SUNNY PARIHAR";
+  const displayHeadline = candidateHeadline || "Add your headline or upload resume";
+  const displayLocation = candidateLocation || "Location not set";
+  const displayEmail = personalEmail || "Email not set";
+  const displayPhone = personalPhone || "+91-9625088837";
+  const displayLinkedin = personalLinkedin || "https://www.linkedin.com/in/sunny-parihar";
+
   return (
     <div>
-      {/* Top Header with Upload Resume Button */}
+      {/* Top Header with Upload Resume Button (Turbo box removed) */}
       <div
         style={{
           display: "flex",
@@ -308,29 +325,13 @@ function Profile() {
         </div>
 
         {/* Prominent Upload Resume Button at Top */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div>
           <ResumeUpload
             onExtracted={handleResumeExtracted}
             buttonText="+ Upload Resume"
             variant="primary"
             showHelperText={false}
           />
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              background: "#dcfce7",
-              color: "#15803d",
-              padding: "9px 16px",
-              borderRadius: 999,
-              fontSize: 12.5,
-              fontWeight: 700,
-            }}
-          >
-            <Zap size={14} fill="#15803d" />
-            <span>Turbo for Students: Get Hired Faster! &rarr;</span>
-          </div>
         </div>
       </div>
 
@@ -443,10 +444,10 @@ function Profile() {
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                   <div>
                     <h2 style={{ fontSize: 26, fontWeight: 800, margin: 0, textTransform: "uppercase", letterSpacing: "-0.01em" }}>
-                      {candidateName}
+                      {displayName}
                     </h2>
                     <p style={{ margin: "4px 0 0", fontSize: 14, color: "#64748b" }}>
-                      {candidateHeadline}
+                      {displayHeadline}
                     </p>
                   </div>
                   <button
@@ -486,7 +487,7 @@ function Profile() {
                               setCandidateName(e.target.value);
                               localStorage.setItem("shortlist_profile_name", e.target.value);
                             }}
-                            placeholder="e.g. GAURI TIWARI"
+                            placeholder="e.g. Sunny Parihar"
                           />
                         </div>
                         <div>
@@ -498,7 +499,7 @@ function Profile() {
                               setCandidateLocation(e.target.value);
                               localStorage.setItem("shortlist_profile_location", e.target.value);
                             }}
-                            placeholder="e.g. Laxmi Apartment, Gwalior, M.P"
+                            placeholder="e.g. Bhopal, India"
                           />
                         </div>
                       </div>
@@ -511,7 +512,7 @@ function Profile() {
                             setCandidateHeadline(e.target.value);
                             localStorage.setItem("shortlist_profile_headline", e.target.value);
                           }}
-                          placeholder="e.g. Electronics Engineering Student | Full Stack Developer"
+                          placeholder="e.g. AI Engineer | Generative AI & Full Stack"
                         />
                       </div>
                       <div className="grid-2">
@@ -536,7 +537,7 @@ function Profile() {
                               setPersonalEmail(e.target.value);
                               localStorage.setItem("shortlist_profile_email", e.target.value);
                             }}
-                            placeholder="e.g. tiwarigauriii30@gmail.com"
+                            placeholder="e.g. candidate@example.com"
                           />
                         </div>
                       </div>
@@ -569,31 +570,33 @@ function Profile() {
 
                 {/* Contact Pills */}
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 16 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "6px 12px", borderRadius: 999, fontSize: 12.5, color: "#334155" }}>
-                    <MapPin size={13} color="#64748b" />
-                    <span>{candidateLocation}</span>
-                  </div>
+                  {displayLocation !== "Location not set" && (
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "6px 12px", borderRadius: 999, fontSize: 12.5, color: "#334155" }}>
+                      <MapPin size={13} color="#64748b" />
+                      <span>{displayLocation}</span>
+                    </div>
+                  )}
                   <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "6px 12px", borderRadius: 999, fontSize: 12.5, color: "#334155" }}>
                     <Mail size={13} color="#64748b" />
-                    <span>{personalEmail}</span>
+                    <span>{displayEmail}</span>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "6px 12px", borderRadius: 999, fontSize: 12.5, color: "#334155" }}>
                     <Phone size={13} color="#64748b" />
-                    <span>{personalPhone}</span>
+                    <span>{displayPhone}</span>
                   </div>
                   <a
-                    href={personalLinkedin}
+                    href={displayLinkedin.startsWith("http") ? displayLinkedin : `https://${displayLinkedin}`}
                     target="_blank"
                     rel="noreferrer noopener"
                     style={{ display: "flex", alignItems: "center", gap: 6, background: "#f0f9ff", border: "1px solid #bae6fd", padding: "6px 12px", borderRadius: 999, fontSize: 12.5, color: "#0284c7", textDecoration: "none" }}
                   >
                     <Linkedin size={13} />
-                    <span>{personalLinkedin.replace("https://", "")}</span>
+                    <span>{displayLinkedin.replace(/^https?:\/\/(www\.)?/, "")}</span>
                   </a>
                 </div>
               </div>
 
-              {/* Career Preferences & Target Roles Form */}
+              {/* Career Preferences & Target Roles Form (UNPREFILLED) */}
               <div className="card" style={{ padding: "28px", borderRadius: 20 }}>
                 <h3 style={{ fontSize: 17, fontWeight: 700, margin: "0 0 18px", color: "#0f172a" }}>
                   Career Preferences &amp; Target Roles
@@ -608,9 +611,9 @@ function Profile() {
                         className="input"
                         id="name"
                         name="name"
-                        value={candidateName}
-                        onChange={(e) => setCandidateName(e.target.value)}
-                        placeholder="e.g. GAURI TIWARI"
+                        value={prefName}
+                        onChange={(e) => setPrefName(e.target.value)}
+                        placeholder="e.g. Sunny Parihar"
                       />
                     </div>
                     <div>
@@ -621,9 +624,9 @@ function Profile() {
                         className="input"
                         id="location"
                         name="location"
-                        value={candidateLocation}
-                        onChange={(e) => setCandidateLocation(e.target.value)}
-                        placeholder="e.g. Gwalior, Remote"
+                        value={prefLocation}
+                        onChange={(e) => setPrefLocation(e.target.value)}
+                        placeholder="e.g. Remote, San Francisco, Bangalore"
                       />
                     </div>
                   </div>
@@ -637,8 +640,8 @@ function Profile() {
                         className="input"
                         id="email"
                         name="email"
-                        value={personalEmail}
-                        onChange={(e) => setPersonalEmail(e.target.value)}
+                        value={prefEmail}
+                        onChange={(e) => setPrefEmail(e.target.value)}
                         placeholder="e.g. candidate@example.com"
                       />
                     </div>
@@ -650,9 +653,9 @@ function Profile() {
                         className="input"
                         id="headline"
                         name="headline"
-                        value={candidateHeadline}
-                        onChange={(e) => setCandidateHeadline(e.target.value)}
-                        placeholder="e.g. Full Stack Developer | React, Python"
+                        value={prefHeadline}
+                        onChange={(e) => setPrefHeadline(e.target.value)}
+                        placeholder="e.g. AI Engineer | Full Stack Developer"
                       />
                     </div>
                   </div>
@@ -666,9 +669,10 @@ function Profile() {
                         className="select"
                         id="seniority"
                         name="seniority"
-                        value={seniorityLevel}
-                        onChange={(e) => setSeniorityLevel(e.target.value as any)}
+                        value={prefSeniority}
+                        onChange={(e) => setPrefSeniority(e.target.value)}
                       >
+                        <option value="">Select experience level...</option>
                         <option value="intern">Intern / Placement</option>
                         <option value="junior">Junior / Graduate</option>
                         <option value="mid">Mid-Level</option>
@@ -686,8 +690,9 @@ function Profile() {
                         type="number"
                         min={1}
                         max={40}
-                        value={hoursPerWeek}
-                        onChange={(e) => setHoursPerWeek(Number(e.target.value))}
+                        value={prefHours}
+                        onChange={(e) => setPrefHours(e.target.value)}
+                        placeholder="e.g. 40"
                       />
                     </div>
                     <div>
@@ -701,8 +706,8 @@ function Profile() {
                         type="number"
                         step={1000}
                         placeholder="e.g. 60000"
-                        value={minSalaryVal}
-                        onChange={(e) => setMinSalaryVal(e.target.value)}
+                        value={prefMinSalary}
+                        onChange={(e) => setPrefMinSalary(e.target.value)}
                       />
                     </div>
                   </div>
@@ -715,32 +720,24 @@ function Profile() {
                       className="input"
                       id="targetRoles"
                       name="targetRoles"
-                      value={targetRolesStr}
-                      onChange={(e) => setTargetRolesStr(e.target.value)}
-                      placeholder="python, software engineer, intern, fullstack"
+                      value={prefTargetRoles}
+                      onChange={(e) => setPrefTargetRoles(e.target.value)}
+                      placeholder="e.g. python, software engineer, fullstack"
                     />
                   </div>
 
                   <div>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                      <label className="field" htmlFor="resume" style={{ margin: 0 }}>
-                        Resume Text (Extracted automatically from PDF/TXT upload)
-                      </label>
-                      <ResumeUpload
-                        onExtracted={handleResumeExtracted}
-                        buttonText="Re-upload Resume"
-                        variant="secondary"
-                        showHelperText={false}
-                      />
-                    </div>
+                    <label className="field" htmlFor="resume">
+                      Resume Text (Optional)
+                    </label>
                     <textarea
                       className="textarea"
                       id="resume"
                       name="resume"
-                      rows={10}
-                      value={resumeContent}
-                      onChange={(e) => setResumeContent(e.target.value)}
-                      placeholder="Upload your resume above or paste resume text here..."
+                      rows={6}
+                      value={prefResume}
+                      onChange={(e) => setPrefResume(e.target.value)}
+                      placeholder="Paste additional notes or custom resume text here..."
                     />
                   </div>
 
@@ -751,7 +748,7 @@ function Profile() {
                       disabled={isSaving}
                       style={{ borderRadius: 999, padding: "11px 28px", fontWeight: 700 }}
                     >
-                      {isSaving ? "Saving changes..." : "Save Profile"}
+                      {isSaving ? "Saving preferences..." : "Save Profile"}
                     </button>
                     {saveSuccessMsg && (
                       <span style={{ fontSize: 13, color: "#059669", fontWeight: 600 }}>
@@ -770,7 +767,7 @@ function Profile() {
                     AI Resume Scoring &amp; Optimization
                   </h3>
                 </div>
-                <ResumeScorer initialTargetRole={targetRolesStr.split(",")[0]?.trim() || "Python Engineer"} />
+                <ResumeScorer initialTargetRole={prefTargetRoles ? prefTargetRoles.split(",")[0]?.trim() : "Python Engineer"} />
               </div>
             </div>
           )}
@@ -997,7 +994,7 @@ function Profile() {
 
           {activeTab === "eeo" && (
             <div className="card" style={{ padding: "28px", borderRadius: 20 }}>
-              <h3 style={{ fontSize: 18, fontWeight: 800, margin: "0 0 12px" }}>Equal Employment Opportunity</h3>
+              <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0, marginBottom: 12 }}>Equal Employment Opportunity</h3>
               <p style={{ fontSize: 13, color: "#64748b", margin: "0 0 20px", lineHeight: 1.5 }}>
                 Voluntary demographic information used only when an employer application requests it. You may change or clear these answers at any time.
               </p>
@@ -1024,35 +1021,14 @@ function Profile() {
           )}
         </div>
 
-        {/* Right Sidebar Column (Jobright Style) */}
+        {/* Right Sidebar Column (Jobright Style - Coral box removed) */}
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-          {/* Coral Completion Alert Card */}
-          <div className="jobright-coral-alert">
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-              <AlertCircle size={20} color="#dc2626" />
-              <h4 style={{ margin: 0, fontSize: 14, fontWeight: 800, color: "#991b1b" }}>
-                Complete your profile
-              </h4>
-            </div>
-            <p style={{ fontSize: 12.5, color: "#7f1d1d", lineHeight: 1.5, margin: "0 0 14px" }}>
-              Complete your profile to boost job matching accuracy and enable Autofill extension to autofill your applications.
-            </p>
-            <button
-              type="button"
-              onClick={() => setActiveTab("personal")}
-              className="jobright-btn-coral"
-            >
-              Complete Profile
-            </button>
-          </div>
-
           {/* Quick Actions Card */}
           <div className="card" style={{ padding: "18px", borderRadius: 16 }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               <button
                 type="button"
                 onClick={() => {
-                  const fileBtn = document.querySelector('button[title="Upload resume"], button:has(svg)') as HTMLElement;
                   window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
                 style={{

@@ -103,7 +103,7 @@ export function parseResumeText(text: string): ExtractedResumeData {
   }
 
   // 5. Location extraction
-  // Look in the top 8 lines for location keywords, or Indian / international city names
+  // Look in the top 8 lines for concise location tokens (max 45 chars, not sentences)
   let location: string | undefined = undefined;
   const locationKeywords = [
     "apartment", "nagar", "road", "street", "gwalior", "m.p", "delhi", "mumbai",
@@ -114,7 +114,17 @@ export function parseResumeText(text: string): ExtractedResumeData {
   for (let i = 0; i < Math.min(lines.length, 8); i++) {
     const line = lines[i]!;
     const lower = line.toLowerCase();
-    if (locationKeywords.some((kw) => lower.includes(kw)) && !lower.includes("@") && !lower.includes("http")) {
+    if (
+      line.length <= 45 &&
+      !lower.includes("@") &&
+      !lower.includes("http") &&
+      !lower.includes("engineer") &&
+      !lower.includes("developer") &&
+      !lower.includes("candidate") &&
+      !lower.includes("deploys") &&
+      !lower.includes("who develops") &&
+      locationKeywords.some((kw) => lower.includes(kw))
+    ) {
       location = line.replace(/^[•|\-–—\s]+/, "").trim();
       break;
     }
