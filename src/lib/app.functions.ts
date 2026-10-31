@@ -19,6 +19,7 @@ import {
 } from "@/lib/gemini";
 import { resendStatus, sendEmailWithResend } from "@/lib/resend";
 import { buildWorkspace } from "@/lib/insights";
+import { extractJobFromUrlOrText } from "@/lib/job-extractor";
 
 /** Plain-object form of a submitted form; repeated keys become arrays. */
 export type FormFields = Record<string, string | string[]>;
@@ -349,68 +350,27 @@ export const addJobFromTextFn = createServerFn({ method: "POST" }).middleware([r
   .inputValidator(fieldsValidator)
   .handler(async ({ data, context }) => {
     const formData = form(data);
-    let text = String(formData.get("description") ?? "").trim();
-    let title = String(formData.get("title") ?? "").trim();
-    let company = String(formData.get("company") ?? "").trim();
-    let sourceUrl = "";
+    const text = String(formData.get("description") ?? "").trim();
+    const title = String(formData.get("title") ?? "").trim();
+    const company = String(formData.get("company") ?? "").trim();
 
-    if (/^https?:\/\//i.test(text)) {
-      sourceUrl = text;
-      try {
-        const res = await fetch(text, {
-          headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)" },
-          signal: AbortSignal.timeout(6000),
-        });
-        if (res.ok) {
-          const html = await res.text();
-          if (!title) {
-            const match = html.match(/<title[^>]*>(.*?)<\/title>/i);
-            if (match) title = match[1].replace(/[\r\n\t]+/g, " ").trim().slice(0, 80);
-          }
-          const stripped = html
-            .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, " ")
-            .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, " ")
-            .replace(/<[^>]+>/g, " ")
-            .replace(/&nbsp;/g, " ")
-            .replace(/&amp;/g, "&")
-            .replace(/&quot;/g, '"')
-            .replace(/\s+/g, " ")
-            .trim();
-          if (stripped.length >= 60) text = stripped.slice(0, 10000);
-        }
-      } catch {
-        // Fallback to text as entered
-      }
-    }
+    if (!text || text.length < 10) return { added: false };
 
-    if (!title) title = "Imported listing";
-    if (!company) company = "Direct employer";
-    if (text.length < 50) return { added: false };
-
-    const requirements = skillsIn(`${title}. ${text}`)
-      .slice(0, 10)
-      .map((skill) => ({ skill, must: false }));
-
-    await db.insertJob(repoFrom(context), {
-      id: `pasted-${Date.now()}`,
-      title,
-      company,
-      companyVerified: false,
-      location: "Not stated",
-      workMode: "hybrid",
-      seniority: "junior",
-      salaryMin: null,
-      salaryMax: null,
-      description: text,
-      requirements,
-      postedAt: new Date().toISOString(),
-      expiresAt: null,
-      repostCount: 0,
-      filledDaysAgo: null,
-      source: sourceUrl ? "Imported from URL" : "Pasted by candidate",
-      sourceUrl,
+    const extractedJob = await extractJobFromUrlOrText({
+      urlOrText: text,
+      overrideTitle: title || undefined,
+      overrideCompany: company || undefined,
     });
-    return { added: true };
+
+    const repo = repoFrom(context);
+
+    // Auto-clean any previous ghost jobs with placeholder "Imported listing"
+    try {
+      await repo.sb.from("jobs").delete().eq("user_id", repo.uid).eq("title", "Imported listing");
+    } catch {}
+
+    await db.insertJob(repo, extractedJob);
+    return { added: true, id: extractedJob.id };
   });
 
 export interface ImportSourceSummary {

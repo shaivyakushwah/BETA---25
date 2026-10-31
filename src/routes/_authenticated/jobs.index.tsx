@@ -6,7 +6,7 @@ import { getWorkspace } from "@/lib/insights";
 import { jobFamily, FAMILY_LABEL, type JobFamily } from "@/lib/engines/market";
 import { JobCard, PageHeader } from "@/components/ui";
 import { LiveImport } from "@/components/live-import";
-import { addJobFromTextAction } from "@/app/actions";
+import { ListingImporter } from "@/components/listing-importer";
 
 function Page() {
   return (
@@ -74,56 +74,7 @@ function Listings() {
 
       <LiveImport />
 
-      <details className="card" style={{ padding: "14px 18px", marginBottom: 20 }}>
-        <summary>
-          <span className="mono-xs" style={{ color: "var(--color-brand)", fontWeight: 600 }}>
-            Import a listing (Paste URL or Text)
-          </span>
-        </summary>
-        <p style={{ margin: "8px 0 0", fontSize: 13, color: "var(--color-ink-soft)", maxWidth: "76ch" }}>
-          Saw a role on Greenhouse, Lever, LinkedIn, or a company site? Paste the direct URL or full description text.
-          If you provide a URL, we will automatically fetch the listing content and evaluate trust and skill fit.
-        </p>
-        <form
-          action={addJobFromTextAction}
-          style={{ display: "grid", gap: 10, marginTop: 12, gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}
-        >
-          <div>
-            <label className="field" htmlFor="paste-title">
-              Job title (optional if URL provided)
-            </label>
-            <input className="input" id="paste-title" name="title" placeholder="e.g. Frontend Engineer" />
-          </div>
-          <div>
-            <label className="field" htmlFor="paste-company">
-              Company (optional if URL provided)
-            </label>
-            <input className="input" id="paste-company" name="company" placeholder="e.g. Stripe, Acme Corp" />
-          </div>
-          <div style={{ gridColumn: "1 / -1" }}>
-            <label className="field" htmlFor="paste-description">
-              Listing URL or full description text
-            </label>
-            <textarea
-              className="textarea"
-              id="paste-description"
-              name="description"
-              required
-              minLength={15}
-              rows={4}
-              placeholder="Paste https://... or the full job advert text here"
-            />
-          </div>
-          <div style={{ gridColumn: "1 / -1", display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-            <button className="btn btn-primary" type="submit">
-              Ingest & Analyze Fit
-            </button>
-            <span className="mono-xs" style={{ color: "var(--color-ink-faint)" }}>
-              Evaluated privately in local storage. Nothing sent to employers.
-            </span>
-          </div>
-        </form>
-      </details>
+      <ListingImporter />
 
       <div className="card" style={{ padding: "12px 14px", marginBottom: 18 }}>
         <form action="/jobs" method="get" style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "end" }}>
