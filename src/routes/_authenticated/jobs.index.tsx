@@ -73,9 +73,9 @@ function Listings() {
   return (
     <>
       <PageHeader
-        eyebrow={`${ws.jobs.length} listings · ${ws.market.sample} in your target families`}
-        title="Every listing, including the doubtful ones"
-        lede="Nothing is filtered out of existence by the trust check. A listing with warnings stays here with its warnings attached, so you decide with the evidence in front of you."
+        eyebrow={`${ws.jobs.length} Listings · AI Matched`}
+        title="Recommended Jobs"
+        lede="Browse AI-matched opportunities tailored to your resume, skills, and target roles."
       />
 
       <LiveImport />

@@ -52,7 +52,7 @@ export function ConfidenceNote({ fit }: { fit: FitReport }) {
   if (fit.confidence >= 0.7) return null;
   return (
     <p className="mono-xs" style={{ color: "var(--color-warn)", marginTop: 4 }}>
-      thin profile — treat this score as approximate (±
+      Complete profile to boost match accuracy (±
       {Math.round((1 - fit.confidence) * 40)} pts)
     </p>
   );
@@ -71,8 +71,7 @@ export function PageHeader({
 }) {
   return (
     <header style={{ marginBottom: 28 }}>
-      <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "3px 11px", borderRadius: 999, background: "#ecfdf5", border: "1px solid #a7f3d0", color: "#065f46", fontSize: 11, fontWeight: 700, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>
-        
+      <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "3px 11px", borderRadius: 999, background: "#ecfdf5", border: "1px solid #a7f3d0", color: "#065f46", fontSize: 11, fontWeight: 700, fontFamily: "var(--font-sans)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 10 }}>
         <span>{eyebrow}</span>
       </div>
       <div

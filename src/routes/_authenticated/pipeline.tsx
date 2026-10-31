@@ -8,10 +8,10 @@ import { setStatusAction } from "@/app/actions";
 import { PageHeader, formatDate } from "@/components/ui";
 
 const COLUMNS: { key: string; label: string; statuses: string[] }[] = [
-  { key: "drafting", label: "In your hands", statuses: ["drafting", "ready"] },
-  { key: "applied", label: "Sent, waiting", statuses: ["applied"] },
-  { key: "active", label: "Talking to them", statuses: ["screening", "interview", "offer"] },
-  { key: "closed", label: "Closed", statuses: ["rejected", "withdrawn", "ghosted"] },
+  { key: "drafting", label: "Available to Apply", statuses: ["drafting", "ready"] },
+  { key: "applied", label: "Submitted", statuses: ["applied"] },
+  { key: "active", label: "Interview / Active", statuses: ["screening", "interview", "offer"] },
+  { key: "closed", label: "Archived / Closed", statuses: ["rejected", "withdrawn", "ghosted"] },
 ];
 
 const NEXT_STEPS = [
@@ -41,9 +41,9 @@ function Pipeline() {
   return (
     <>
       <PageHeader
-        eyebrow={`${applications.length} applications · ${applications.filter((a) => a.submittedAt).length} sent`}
-        title="Where everything actually stands"
-        lede="One record per application, built from what you confirmed. Late updates arrive through the Updates page, where an unclear message stays a proposal until you accept it."
+        eyebrow={`${applications.length} Applications · ${applications.filter((a) => a.submittedAt).length} Submitted`}
+        title="Application Tracker"
+        lede="Keep track of all your applications, interview stages, and recruiter responses."
       />
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0,1fr))", gap: 14 }}>

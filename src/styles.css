@@ -46,9 +46,9 @@
   --color-info-soft: #f0f9ff;
   --color-info-border: #bae6fd;
 
-  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-display: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 @layer base {
@@ -58,16 +58,10 @@
   }
 
   body {
-    background-color: var(--color-paper);
-    background-image:
-      radial-gradient(ellipse 80% 50% at 50% -10%, var(--color-grid-glow), transparent 70%),
-      linear-gradient(var(--color-grid-line) 1px, transparent 1px),
-      linear-gradient(90deg, var(--color-grid-line) 1px, transparent 1px);
-    background-size: 100% 100%, 40px 40px, 40px 40px;
-    background-attachment: fixed;
+    background-color: #f8fafc;
     color: var(--color-ink);
     font-family: var(--font-sans);
-    font-size: 14.5px;
+    font-size: 14px;
     line-height: 1.55;
   }
 
@@ -187,15 +181,15 @@
 }
 
 .nav-index {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 11px;
   font-weight: 600;
   opacity: 0.6;
 }
 
 .page {
-  padding: 36px 40px 80px;
-  max-width: 1240px;
+  padding: 32px 36px 80px;
+  max-width: 1300px;
   width: 100%;
 }
 
@@ -208,34 +202,34 @@
 /* ---------- Typography ---------- */
 
 .eyebrow {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
+  font-family: var(--font-sans);
+  font-size: 11.5px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--color-brand);
+  color: var(--color-accent);
 }
 
 .display {
   font-family: var(--font-display);
-  font-size: clamp(26px, 3.2vw, 36px);
+  font-size: clamp(24px, 2.8vw, 32px);
   font-weight: 750;
-  line-height: 1.15;
-  letter-spacing: -0.03em;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
   color: var(--color-ink);
 }
 
 .lede {
-  font-size: 15px;
+  font-size: 14px;
   color: var(--color-ink-soft);
   max-width: 68ch;
-  line-height: 1.6;
+  line-height: 1.55;
 }
 
 .num {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-variant-numeric: tabular-nums;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 /* ---------- Cards & Surfaces ---------- */
@@ -461,9 +455,175 @@ label.field {
 }
 
 .mono-xs {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.02em;
+  font-family: var(--font-sans);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+/* ---------- Jobright Theme Components ---------- */
+
+.jobright-tab-bar {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  border-bottom: 2px solid #f1f5f9;
+  margin-bottom: 24px;
+}
+
+.jobright-tab {
+  background: none;
+  border: none;
+  padding: 10px 2px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  position: relative;
+  transition: all 160ms ease;
+}
+
+.jobright-tab:hover {
+  color: #0f172a;
+}
+
+.jobright-tab[data-active="true"] {
+  color: #0f172a;
+}
+
+.jobright-tab[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2.5px;
+  background: #0f172a;
+  border-radius: 999px;
+}
+
+.jobright-secure-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 24px;
+}
+
+.jobright-coral-alert {
+  background: #fef2f2;
+  border: 1px solid #fee2e2;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(220, 38, 38, 0.04);
+}
+
+.jobright-coral-alert h4 {
+  color: #991b1b;
+  font-size: 13.5px;
+  font-weight: 700;
+  margin: 0 0 6px;
+}
+
+.jobright-coral-alert p {
+  color: #7f1d1d;
+  font-size: 12.5px;
+  line-height: 1.5;
+  margin: 0 0 14px;
+}
+
+.jobright-btn-coral {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 160ms ease;
+}
+
+.jobright-btn-coral:hover {
+  background: #1e293b;
+  transform: translateY(-1px);
+}
+
+.jobright-match-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: #042f2e;
+  border: 3px solid #0d9488;
+  color: #ffffff;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.jobright-match-score {
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.jobright-match-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #5eead4;
+  margin-top: 3px;
+}
+
+/* Modal styles for profile completion popup */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: fadeIn 180ms ease-out;
+}
+
+.modal-content {
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 500px;
+  padding: 32px;
+  position: relative;
+  animation: scaleUp 220ms ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 .link-underline {

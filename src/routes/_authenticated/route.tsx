@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { SideNav } from "@/components/side-nav";
+import { ProfileCompletionModal } from "@/components/profile-completion-modal";
 import { getWorkspace } from "@/lib/insights";
 import { listProposals } from "@/lib/db";
 import { providerStatus, resendStatus } from "@/lib/status";
@@ -120,6 +121,7 @@ function AuthedLayout() {
         </Suspense>
       </aside>
       <main id="main" className="page">
+        <ProfileCompletionModal />
         <Suspense fallback={<p className="mono-xs">Loading your workspace…</p>}>
           <Outlet />
         </Suspense>

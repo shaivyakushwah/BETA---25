@@ -1,29 +1,28 @@
 
 import Link from "@/lib/next-compat";
 import { usePathname } from "@/lib/next-compat";
-import { Target, Briefcase, KanbanSquare, Inbox, LineChart, UserRound, ShieldCheck, type LucideIcon } from "lucide-react";
+import { Target, Briefcase, KanbanSquare, Inbox, UserRound, ShieldCheck, type LucideIcon } from "lucide-react";
 
 const GROUPS: { label: string; items: { href: string; label: string; icon: LucideIcon; index: string }[] }[] = [
   {
-    label: "Core Workspace",
+    label: "Jobs & Applications",
     items: [
-      { href: "/sprint", label: "Weekly Sprint", icon: Target, index: "01" },
-      { href: "/jobs", label: "AI Job Matches", icon: Briefcase, index: "02" },
-      { href: "/pipeline", label: "Application Tracker", icon: KanbanSquare, index: "03" },
+      { href: "/jobs", label: "Jobs", icon: Briefcase, index: "01" },
+      { href: "/sprint", label: "Weekly Sprint", icon: Target, index: "02" },
+      { href: "/pipeline", label: "Applications", icon: KanbanSquare, index: "03" },
     ],
   },
   {
-    label: "AI Intelligence",
+    label: "AI Copilot",
     items: [
-      { href: "/updates", label: "Status Ingestion", icon: Inbox, index: "04" },
-      { href: "/insights", label: "Market & Evidence", icon: LineChart, index: "05" },
+      { href: "/updates", label: "Reply Drafter", icon: Inbox, index: "04" },
     ],
   },
   {
-    label: "Control Center",
+    label: "My Account",
     items: [
-      { href: "/profile", label: "Profile & Resume", icon: UserRound, index: "06" },
-      { href: "/privacy", label: "Trust & Storage", icon: ShieldCheck, index: "07" },
+      { href: "/profile", label: "Profile & Resume", icon: UserRound, index: "05" },
+      { href: "/privacy", label: "Settings & Privacy", icon: ShieldCheck, index: "06" },
     ],
   },
 ];
@@ -38,7 +37,7 @@ export function SideNav() {
     <nav aria-label="Main">
       {GROUPS.map((group) => (
         <div key={group.label} style={{ marginBottom: 20 }}>
-          <p className="eyebrow" style={{ margin: "0 0 8px 10px", fontSize: 10 }}>
+          <p className="eyebrow" style={{ margin: "0 0 8px 10px", fontSize: 10, color: "var(--color-ink-faint)" }}>
             {group.label}
           </p>
           <div className="nav-group">

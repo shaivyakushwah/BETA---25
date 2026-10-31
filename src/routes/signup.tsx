@@ -22,6 +22,9 @@ async function signUpAction(_prev: AuthState, formData: FormData): Promise<AuthS
   });
   if (error) return { error: error.message };
   if (data.session) {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("shortlist_new_signup", "true");
+    }
     go("/sprint");
     return null;
   }

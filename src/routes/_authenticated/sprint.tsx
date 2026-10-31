@@ -30,9 +30,9 @@ function Week() {
   return (
     <>
       <PageHeader
-        eyebrow={`This week · ${ws.candidate.hoursPerWeek} hours budgeted`}
-        title={`Spend your ${ws.candidate.hoursPerWeek} hours here`}
-        lede={`${ws.jobs.length} listings checked, ${ws.market.sample} inside your target families, and ${plan.skip.length} set aside with a reason. Ranked by what you can realistically win, not by what was posted most recently.`}
+        eyebrow={`Weekly Sprint · ${ws.candidate.hoursPerWeek} Hours Budgeted`}
+        title="Your Weekly Action Plan"
+        lede="Personalized high-match job opportunities prioritized for your skills and career goals."
         actions={
           <form action={setHoursAction} style={{ display: "flex", gap: 6, alignItems: "center" }}>
             <label htmlFor="hours" className="mono-xs" style={{ color: "var(--color-ink-faint)" }}>

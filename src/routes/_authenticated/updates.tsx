@@ -33,30 +33,30 @@ function Updates() {
   return (
     <>
       <PageHeader
-        eyebrow="Updates"
-        title="News arrives late, and in the wrong place"
-        lede="Paste the part of the message that carries the decision. Shortlist proposes what it means, shows the phrase it used, and changes nothing until you confirm."
+        eyebrow="AI Reply Drafter"
+        title="Turn Recruiter Emails Into Next Steps & Replies"
+        lede="Paste any recruiter email, interview invitation, or portal message. Shortlist detects the application stage and drafts a professional response."
       />
 
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1.4fr) minmax(0,1fr)", gap: 24, alignItems: "start" }}>
         <div>
           <form action={addUpdateAction} className="card card-pad">
             <label className="field" htmlFor="raw">
-              Paste an email, message or portal note
+              Paste recruiter email or message
             </label>
             <textarea
               id="raw"
               name="raw"
               className="textarea"
               rows={6}
-              placeholder={"Subject: Next steps — your application\n\nHi there, thanks for applying. We would like to invite you to a 30-minute call…"}
+              placeholder={"Subject: Next steps — your application\n\nHi there, thanks for applying. We would like to invite you to a 30-minute interview…"}
             />
             <div style={{ display: "flex", gap: 8, marginTop: 10, alignItems: "center", flexWrap: "wrap" }}>
               <button className="btn btn-primary" type="submit">
-                Propose an update
+                Draft AI Reply &amp; Update Stage
               </button>
               <span className="mono-xs" style={{ color: "var(--color-ink-faint)" }}>
-                Nothing is written to your pipeline yet.
+                You review and approve before anything is changed.
               </span>
             </div>
           </form>
