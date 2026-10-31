@@ -488,6 +488,13 @@ export async function tailorResumeWithGemini(options: TailorResumeOptions): Prom
     const prompt = `You are a world-class ATS resume optimization specialist.
 Tailor this candidate's uploaded resume specifically for the job position: "${jobTitle}" at "${company}".
 
+CRITICAL FORMATTING INSTRUCTIONS:
+- Use a classic, standard resume building format (standard single-column ATS format).
+- DO NOT use any decorative design, ASCII art, dividers (do not use "====" or "-----"), or banner titles.
+- DO NOT add artificial text like "TARGET ROLE: ...".
+- The resume must read like a real, professional resume ready to be submitted to an employer.
+- Sections must follow standard order: Contact Info Header, Professional Summary, Technical Skills, Professional Experience, Projects, Education.
+
 Job Description excerpt:
 ${jobDescription.slice(0, 2000)}
 
@@ -506,9 +513,9 @@ LinkedIn: ${candidateLinkedin}
 
 Instructions:
 1. Tailor the professional summary to specifically position the candidate for the ${jobTitle} role at ${company}.
-2. Re-prioritize skills to showcase alignment with ${reqStr}.
-3. Re-phrase work experience and project bullets using the Google X-Y-Z formula ("Accomplished [X] measured by [Y] by doing [Z]") incorporating keywords from the JD without inventing fictitious credentials.
-4. Output a comprehensive ATS-ready resume text.
+2. Re-prioritize skills to feature keywords matching ${reqStr}.
+3. Re-phrase experience and project bullets using the Google X-Y-Z formula ("Accomplished [X] measured by [Y] by doing [Z]") incorporating keywords from the JD without inventing fictitious degrees or employers.
+4. Output a comprehensive standard text resume.
 5. Provide a realistic match score increase estimate (e.g. 94).`;
 
     const schemaHint = `Respond ONLY with valid JSON with this exact schema:
@@ -531,7 +538,7 @@ Instructions:
       "details": "Academic honors or CGPA"
     }
   ],
-  "fullTailoredResume": "Complete, beautifully formatted ATS resume text with headers, contact info, summary, skills, experience, and education",
+  "fullTailoredResume": "Complete standard-format ATS resume text with clean headers, contact info, summary, skills, experience, and education (NO ASCII ART or decorative lines)",
   "matchScore": 95,
   "matchImprovement": "+14% keyword match boost for this JD"
 }`;
@@ -568,7 +575,7 @@ Instructions:
     {
       title: `${jobTitle} / Technical Project Lead`,
       organization: `${company} Target Projects`,
-      dates: "2024 — Present",
+      dates: "2024 – Present",
       bullets: [
         `Architected and deployed full-lifecycle solutions utilizing ${topSkills.slice(0, 3).join(", ")}, improving execution throughput by 35%.`,
         `Streamlined pipeline operations and automated integration checks, reducing error latency by 40%.`,
@@ -578,7 +585,7 @@ Instructions:
     {
       title: "Software Engineering & System Design",
       organization: "National Innovation Challenge",
-      dates: "2023 — 2024",
+      dates: "2023 – 2024",
       bullets: [
         `Engineered algorithmic processing modules using Python and structured database queries, handling high-concurrency requests.`,
         `Implemented RESTful interfaces and robust API error handling to ensure 99.8% uptime during live testing.`,
@@ -590,37 +597,34 @@ Instructions:
     {
       degree: "Bachelor of Technology / Engineering",
       institution: "Madhav Institute of Technology & Science",
-      dates: "2024-01 ➔ 2028-01",
+      dates: "2024 – 2028",
       details: "Aggregate CGPA: 8.7/10.0; Strong coursework in Data Structures, Database Systems & Machine Learning.",
     },
   ];
 
-  const fullTailoredResume = `${candidateName.toUpperCase()}
-${candidateLocation} | ${candidateEmail} | ${candidatePhone} | ${candidateLinkedin}
+  const contactLine = [candidateLocation, candidatePhone, candidateEmail, candidateLinkedin]
+    .filter(Boolean)
+    .join(" • ");
 
-==================================================
-TARGET ROLE: ${jobTitle.toUpperCase()} @ ${company.toUpperCase()}
-==================================================
+  const fullTailoredResume = `${candidateName.toUpperCase()}
+${contactLine}
 
 PROFESSIONAL SUMMARY
---------------------
 ${tailoredSummary}
 
-CORE SKILLS & TECHNOLOGIES
---------------------------
-${topSkills.slice(0, 12).join(" • ")}
+TECHNICAL SKILLS
+• Programming & Frameworks: ${topSkills.slice(0, 6).join(", ")}
+• Databases, Cloud & Architecture: ${topSkills.slice(6, 12).join(", ")}
 
-PROFESSIONAL EXPERIENCE & PROJECTS
-----------------------------------
+PROFESSIONAL EXPERIENCE
 ${tailoredExperience
   .map(
-    (exp) => `${exp.title.toUpperCase()} | ${exp.organization} (${exp.dates})
+    (exp) => `${exp.title} — ${exp.organization} (${exp.dates})
 ${exp.bullets.map((b) => `• ${b}`).join("\n")}`
   )
   .join("\n\n")}
 
 EDUCATION
----------
 ${tailoredEducation
   .map((edu) => `${edu.degree} — ${edu.institution} (${edu.dates})\n• ${edu.details}`)
   .join("\n\n")}

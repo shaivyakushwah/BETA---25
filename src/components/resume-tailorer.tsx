@@ -21,6 +21,91 @@ interface ResumeTailorerProps {
   initialMatchScore?: number;
 }
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function formatResumeToStandardHtml(text: string, fallbackName: string): string {
+  const lines = text
+    .split(/\r?\n/)
+    .map((l) => l.trimEnd())
+    .filter((l) => !/^[=\-_*#]{3,}$/.test(l.trim()));
+
+  let bodyHtml = "";
+  let inBullets = false;
+
+  const sectionRegex =
+    /^(PROFESSIONAL SUMMARY|SUMMARY|TECHNICAL SKILLS|SKILLS|CORE COMPETENCIES|WORK EXPERIENCE|PROFESSIONAL EXPERIENCE|EXPERIENCE|PROJECTS|KEY PROJECTS|EDUCATION|CERTIFICATIONS)$/i;
+
+  let seenName = false;
+  let seenContact = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    const trimmed = lines[i].trim();
+
+    if (!trimmed) {
+      if (inBullets) {
+        bodyHtml += "</ul>\n";
+        inBullets = false;
+      }
+      continue;
+    }
+
+    if (!seenName) {
+      seenName = true;
+      bodyHtml += `<h1 class="resume-name">${escapeHtml(trimmed)}</h1>\n`;
+      continue;
+    }
+
+    if (!seenContact && (trimmed.includes("•") || trimmed.includes("@") || trimmed.includes("|") || trimmed.includes("+"))) {
+      seenContact = true;
+      bodyHtml += `<div class="resume-contact">${escapeHtml(trimmed)}</div>\n`;
+      continue;
+    }
+
+    if (sectionRegex.test(trimmed)) {
+      if (inBullets) {
+        bodyHtml += "</ul>\n";
+        inBullets = false;
+      }
+      bodyHtml += `<div class="resume-section-title">${escapeHtml(trimmed.toUpperCase())}</div>\n`;
+      continue;
+    }
+
+    if (/^[•\-\*]\s*/.test(trimmed)) {
+      if (!inBullets) {
+        bodyHtml += `<ul class="resume-bullets">\n`;
+        inBullets = true;
+      }
+      const itemText = trimmed.replace(/^[•\-\*]\s*/, "");
+      bodyHtml += `  <li>${escapeHtml(itemText)}</li>\n`;
+      continue;
+    }
+
+    if (inBullets) {
+      bodyHtml += "</ul>\n";
+      inBullets = false;
+    }
+
+    if (trimmed.includes("—") || trimmed.includes(" - ") || trimmed.includes(" | ")) {
+      bodyHtml += `<div class="resume-entry-header">${escapeHtml(trimmed)}</div>\n`;
+    } else {
+      bodyHtml += `<p class="resume-text">${escapeHtml(trimmed)}</p>\n`;
+    }
+  }
+
+  if (inBullets) {
+    bodyHtml += "</ul>\n";
+  }
+
+  return bodyHtml;
+}
+
 export function ResumeTailorer({ job, candidate, resumeText, initialMatchScore = 80 }: ResumeTailorerProps) {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<TailorResumeResult | null>(null);
@@ -93,55 +178,98 @@ export function ResumeTailorer({ job, candidate, resumeText, initialMatchScore =
     const textToPrint = editedResume || result?.tailoredResume || "";
     if (!textToPrint) return;
 
-    const safeCompany = job.company.replace(/[^a-zA-Z0-9]/g, " ");
     const printWindow = window.open("", "_blank");
     if (!printWindow) {
       handleDownloadTxt();
       return;
     }
 
+    const resumeBody = formatResumeToStandardHtml(textToPrint, displayName);
+
     const htmlContent = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
-  <title>${displayName} - Tailored Resume (${safeCompany})</title>
+  <title>${escapeHtml(displayName)} - Resume</title>
   <style>
-    @page { margin: 15mm 20mm; size: letter portrait; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      color: #1e293b;
-      line-height: 1.5;
-      font-size: 11pt;
-      margin: 0;
-      padding: 20px;
+    @page {
+      margin: 0.6in 0.75in;
+      size: letter portrait;
     }
-    h1 { font-size: 22pt; margin: 0 0 4px; text-transform: uppercase; color: #0f172a; letter-spacing: -0.02em; }
-    .contact { font-size: 10pt; color: #475569; margin-bottom: 18px; border-bottom: 2px solid #00D084; padding-bottom: 8px; }
-    .target-badge { font-size: 9.5pt; font-weight: 700; color: #059669; margin-bottom: 14px; }
-    h2 { font-size: 12.5pt; text-transform: uppercase; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; margin: 16px 0 8px; color: #0f172a; }
-    p { margin: 0 0 10px; }
-    ul { margin: 0 0 12px; padding-left: 20px; }
-    li { margin-bottom: 4px; }
-    .role-header { display: flex; justify-content: space-between; font-weight: 700; color: #0f172a; }
-    .skills-block { background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px 14px; border-radius: 6px; font-size: 10pt; }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: "Times New Roman", Times, Georgia, "Liberation Serif", serif;
+      color: #000000;
+      background: #ffffff;
+      line-height: 1.35;
+      font-size: 10pt;
+      margin: 0;
+      padding: 0;
+    }
+    .resume-name {
+      font-size: 18pt;
+      font-weight: bold;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.5pt;
+      margin: 0 0 3pt 0;
+      color: #000000;
+    }
+    .resume-contact {
+      font-size: 9.5pt;
+      text-align: center;
+      margin: 0 0 10pt 0;
+      color: #000000;
+    }
+    .resume-section-title {
+      font-size: 10.5pt;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.5pt;
+      border-bottom: 0.75pt solid #000000;
+      padding-bottom: 1.5pt;
+      margin-top: 10pt;
+      margin-bottom: 4pt;
+      color: #000000;
+    }
+    .resume-entry-header {
+      font-size: 10pt;
+      font-weight: bold;
+      margin-top: 4pt;
+      margin-bottom: 1.5pt;
+      color: #000000;
+    }
+    .resume-text {
+      font-size: 9.5pt;
+      line-height: 1.35;
+      margin: 0 0 3pt 0;
+      color: #000000;
+    }
+    .resume-bullets {
+      margin: 1.5pt 0 5pt 0;
+      padding-left: 16pt;
+      color: #000000;
+    }
+    .resume-bullets li {
+      margin-bottom: 1.5pt;
+      font-size: 9.5pt;
+      line-height: 1.35;
+      color: #000000;
+    }
     @media print {
-      body { padding: 0; }
-      .no-print { display: none; }
+      body {
+        padding: 0;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>${displayName}</h1>
-  <div class="contact">
-    ${displayLocation} &bull; ${displayEmail} &bull; ${candidate.headline || job.title}
-  </div>
-  <div class="target-badge">
-    TAILORED APPLICATION: ${job.title.toUpperCase()} &bull; ${job.company.toUpperCase()}
-  </div>
-  <pre style="white-space: pre-wrap; font-family: inherit; font-size: inherit; margin: 0;">${textToPrint}</pre>
+  ${resumeBody}
   <script>
     window.onload = function() {
-      setTimeout(function() { window.print(); }, 350);
+      setTimeout(function() { window.print(); }, 250);
     };
   </script>
 </body>
@@ -418,67 +546,75 @@ export function ResumeTailorer({ job, candidate, resumeText, initialMatchScore =
             <div
               style={{
                 background: "#ffffff",
-                border: "1px solid #e2e8f0",
-                borderRadius: 12,
-                padding: "16px",
-                maxHeight: 380,
+                border: "1px solid #cbd5e1",
+                borderRadius: 6,
+                padding: "24px 28px",
+                maxHeight: 460,
                 overflowY: "auto",
-                fontSize: 12.5,
-                lineHeight: 1.6,
-                color: "#1e293b",
+                fontFamily: '"Times New Roman", Times, Georgia, "Liberation Serif", serif',
+                fontSize: 13,
+                lineHeight: 1.35,
+                color: "#000000",
+                boxShadow: "0 1px 4px rgba(0, 0, 0, 0.08)",
               }}
             >
-              <div style={{ borderBottom: "1px solid #f1f5f9", paddingBottom: 10, marginBottom: 12 }}>
-                <h4 style={{ margin: "0 0 2px", fontSize: 16, fontWeight: 800 }}>{displayName}</h4>
-                <p style={{ margin: 0, fontSize: 11.5, color: "#64748b" }}>
-                  {displayLocation} &bull; {displayEmail}
-                </p>
-              </div>
-
-              <div style={{ marginBottom: 12 }}>
-                <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>
-                  Tailored Professional Summary
-                </p>
-                <p style={{ margin: 0, color: "#334155" }}>{result.tailoredSummary}</p>
-              </div>
-
-              {result.tailoredExperience.length > 0 && (
-                <div style={{ marginBottom: 12 }}>
-                  <p style={{ margin: "0 0 6px", fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>
-                    Experience &amp; Targeted Projects
-                  </p>
-                  <div style={{ display: "grid", gap: 8 }}>
-                    {result.tailoredExperience.map((exp, idx) => (
-                      <div key={idx} style={{ background: "#f8fafc", padding: "8px 12px", borderRadius: 8 }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 700, fontSize: 12 }}>
-                          <span>{exp.title}</span>
-                          <span style={{ color: "#64748b", fontWeight: 500 }}>{exp.dates}</span>
-                        </div>
-                        <p style={{ margin: "1px 0 4px", fontSize: 11.5, color: "#059669", fontWeight: 600 }}>{exp.organization}</p>
-                        <ul style={{ margin: "4px 0 0", paddingLeft: 16 }}>
-                          {exp.bullets.map((b, bIdx) => (
-                            <li key={bIdx} style={{ fontSize: 11.5, color: "#334155" }}>{b}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {result.tailoredEducation.length > 0 && (
-                <div>
-                  <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>
-                    Education
-                  </p>
-                  {result.tailoredEducation.map((edu, idx) => (
-                    <div key={idx} style={{ fontSize: 12 }}>
-                      <strong>{edu.degree}</strong> — {edu.institution} ({edu.dates})
-                      <p style={{ margin: "2px 0 0", fontSize: 11.5, color: "#64748b" }}>{edu.details}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <style>{`
+                .resume-name {
+                  font-size: 19px;
+                  font-weight: bold;
+                  text-align: center;
+                  text-transform: uppercase;
+                  letter-spacing: 0.5px;
+                  margin: 0 0 4px 0;
+                  color: #000000;
+                }
+                .resume-contact {
+                  font-size: 12px;
+                  text-align: center;
+                  margin: 0 0 14px 0;
+                  color: #000000;
+                }
+                .resume-section-title {
+                  font-size: 13px;
+                  font-weight: bold;
+                  text-transform: uppercase;
+                  letter-spacing: 0.5px;
+                  border-bottom: 1px solid #000000;
+                  padding-bottom: 2px;
+                  margin-top: 12px;
+                  margin-bottom: 5px;
+                  color: #000000;
+                }
+                .resume-entry-header {
+                  font-size: 12.5px;
+                  font-weight: bold;
+                  margin-top: 5px;
+                  margin-bottom: 2px;
+                  color: #000000;
+                }
+                .resume-text {
+                  font-size: 12px;
+                  line-height: 1.35;
+                  margin: 0 0 4px 0;
+                  color: #000000;
+                }
+                .resume-bullets {
+                  margin: 2px 0 6px 0;
+                  padding-left: 20px;
+                  color: #000000;
+                }
+                .resume-bullets li {
+                  margin-bottom: 2px;
+                  font-size: 12px;
+                  line-height: 1.35;
+                  color: #000000;
+                }
+              `}</style>
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: formatResumeToStandardHtml(editedResume || result.tailoredResume, displayName),
+                }}
+              />
             </div>
           )}
 
