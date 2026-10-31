@@ -1,0 +1,23 @@
+name: 24h Daily Job Fetcher Cron
+
+on:
+  schedule:
+    # Runs automatically every 24 hours at 00:00 UTC
+    - cron: '0 0 * * *'
+  workflow_dispatch: # Allows manual trigger anytime from GitHub Actions tab
+
+jobs:
+  daily-sync:
+    name: Fetch and Import Live Opportunities
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run 24h Daily Job Fetcher
+        run: node scripts/daily-job-sync.cjs

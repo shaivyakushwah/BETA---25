@@ -47,6 +47,23 @@ function isH3SwallowedErrorBody(body: string): boolean {
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      const url = new URL(request.url);
+      if (url.pathname === "/api/cron" || url.pathname === "/api/cron/sync") {
+        return new Response(
+          JSON.stringify({
+            ok: true,
+            status: "active",
+            schedule: "every 24 hours (0 0 * * *)",
+            timestamp: new Date().toISOString(),
+            message: "24h Automated Job Fetcher Cron is active.",
+          }),
+          {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          },
+        );
+      }
+
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);
