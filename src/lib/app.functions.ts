@@ -540,3 +540,13 @@ export const tailorResumeFn = createServerFn({ method: "POST" }).middleware([req
       resumeText,
     });
   });
+
+export const runDailyJobSyncFn = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth])
+  .inputValidator(fieldsValidator)
+  .handler(async ({ data, context }) => {
+    const { executeDailyJobSync } = await import("@/lib/engines/cron-fetcher");
+    const formData = form(data);
+    const customQuery = String(formData.get("query") || "").trim();
+    const repo = repoFrom(context);
+    return executeDailyJobSync(repo, customQuery ? [customQuery] : undefined);
+  });

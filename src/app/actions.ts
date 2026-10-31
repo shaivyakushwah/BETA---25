@@ -23,6 +23,7 @@ import {
   scoreResumeFn,
   sendResendEmailFn,
   tailorResumeFn,
+  runDailyJobSyncFn,
   setHoursFn,
   setStatusFn,
   startApplicationFn,
@@ -158,4 +159,10 @@ export async function sendResendEmailAction(_prevState: unknown, formData: FormD
 
 export async function tailorResumeAction(formData: FormData): Promise<TailorResumeResult> {
   return tailorResumeFn({ data: toFields(formData) });
+}
+
+export async function runDailyJobSyncAction(formData?: FormData) {
+  const result = await runDailyJobSyncFn({ data: formData ? toFields(formData) : {} });
+  await refresh();
+  return result;
 }
