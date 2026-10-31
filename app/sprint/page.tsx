@@ -67,11 +67,25 @@ async function Week() {
           </SectionTitle>
 
           {plan.applyNow.length === 0 ? (
-            <div className="card card-pad">
-              <p style={{ margin: 0 }}>Nothing qualifies this week — every open listing failed a check.</p>
-              <p style={{ margin: "6px 0 0", fontSize: 13, color: "var(--color-ink-soft)" }}>
-                That is a real answer, not an empty state. Look at the skipped list to see what failed and why.
-              </p>
+            <div className="card card-pad" style={{ borderRadius: 16 }}>
+              {ws.jobs.length === 0 ? (
+                <>
+                  <p style={{ margin: 0, fontWeight: 700, fontSize: 16 }}>No listings in your workspace yet.</p>
+                  <p style={{ margin: "6px 0 14px", fontSize: 13, color: "var(--color-ink-soft)" }}>
+                    Import live roles from 11 free feeds or paste a job advert URL to start planning your week.
+                  </p>
+                  <Link href="/jobs" className="btn btn-primary btn-sm">
+                    ⚡ Go to Listings &amp; Import
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <p style={{ margin: 0 }}>Nothing qualifies this week — every open listing failed a check.</p>
+                  <p style={{ margin: "6px 0 0", fontSize: 13, color: "var(--color-ink-soft)" }}>
+                    That is a real answer, not an empty state. Look at the skipped list to see what failed and why.
+                  </p>
+                </>
+              )}
             </div>
           ) : (
             <ol style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 12 }}>

@@ -48,7 +48,7 @@ async function Updates() {
               name="raw"
               className="textarea"
               rows={6}
-              placeholder={"Subject: Next steps — your application\n\nHi Aisha, thanks for applying. We would like to invite you to a 30-minute call…"}
+              placeholder={"Subject: Next steps — your application\n\nHi there, thanks for applying. We would like to invite you to a 30-minute call…"}
             />
             <div style={{ display: "flex", gap: 8, marginTop: 10, alignItems: "center", flexWrap: "wrap" }}>
               <button className="btn btn-primary" type="submit">

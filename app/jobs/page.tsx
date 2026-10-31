@@ -199,15 +199,16 @@ async function Listings({ searchParams }: { searchParams: Promise<Record<string,
       </div>
 
       {items.length === 0 ? (
-        <div className="card card-pad">
-          <p style={{ margin: 0 }}>No listing matches those filters.</p>
-          <p style={{ margin: "6px 0 0", fontSize: 13, color: "var(--color-ink-soft)" }}>
-            The filters are yours — nothing was removed behind your back.{" "}
-            <Link href="/jobs" className="link-underline">
-              Clear them
-            </Link>
-            .
+        <div className="card card-pad" style={{ textAlign: "center", padding: "48px 24px", borderRadius: 16 }}>
+          <p style={{ margin: 0, fontSize: 17, fontWeight: 700, color: "#0f172a" }}>No listings found in your database.</p>
+          <p style={{ margin: "8px auto 20px", fontSize: 13.5, color: "#64748b", maxWidth: "52ch" }}>
+            Use &quot;Import live listings&quot; above to fetch verified remote roles from 11 live feeds, or paste any listing URL to evaluate trust and fit.
           </p>
+          <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+            <Link href="/jobs" className="btn btn-primary btn-sm">
+              Reset Filters
+            </Link>
+          </div>
         </div>
       ) : null}
     </>
