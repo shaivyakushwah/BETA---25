@@ -1,0 +1,86 @@
+[
+ {
+  "capability": "code",
+  "source": "Next.js 16 app (15 routes)",
+  "outcome": "port to TanStack Start",
+  "status": "verified",
+  "next_action": "none"
+ },
+ {
+  "capability": "schema",
+  "source": "local SQLite file (node:sqlite)",
+  "outcome": "migrate to Lovable Cloud, per-user rows",
+  "status": "verified",
+  "next_action": "none"
+ },
+ {
+  "capability": "records",
+  "source": "SQLite data/shortlist.db (not in archive)",
+  "outcome": "migrate",
+  "status": "pending",
+  "next_action": "user to supply table exports (CSV/JSON)"
+ },
+ {
+  "capability": "auth identities",
+  "source": "custom email+scrypt password, cookie sessions",
+  "outcome": "migrate to Lovable Cloud auth",
+  "status": "pending",
+  "next_action": "new sign-up/sign-in verified; existing users need a user export to be imported, otherwise they re-register with the same email"
+ },
+ {
+  "capability": "authorization",
+  "source": "single-tenant (candidate id=1)",
+  "outcome": "per-user RLS",
+  "status": "verified",
+  "next_action": "none"
+ },
+ {
+  "capability": "AI (Gemini)",
+  "source": "GEMINI_API_KEY direct",
+  "outcome": "Gemini via Lovable AI (no key)",
+  "status": "verified",
+  "next_action": "none"
+ },
+ {
+  "capability": "email (Resend)",
+  "source": "RESEND_API_KEY",
+  "outcome": "preserve",
+  "status": "pending",
+  "next_action": "request RESEND_API_KEY + RESEND_FROM_EMAIL"
+ },
+ {
+  "capability": "PDF resume parsing",
+  "source": "pdf-parse server route",
+  "outcome": "parse in browser (pdfjs)",
+  "status": "verified",
+  "next_action": "none"
+ },
+ {
+  "capability": "public job feeds import",
+  "source": "server fetch of public APIs/RSS",
+  "outcome": "preserve as server function",
+  "status": "verified",
+  "next_action": "none"
+ },
+ {
+  "capability": "export / delete data",
+  "source": "/api/export, reset",
+  "outcome": "preserve per user",
+  "status": "verified",
+  "next_action": "none"
+ },
+ {
+  "capability": "schedules/webhooks",
+  "source": "none (retention runs on page load)",
+  "outcome": "preserve on load",
+  "status": "verified",
+  "next_action": "none"
+ },
+ {
+  "capability": "verification",
+  "source": "-",
+  "outcome": "-",
+  "status": "verified",
+  "next_action": "none"
+ }
+]
