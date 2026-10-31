@@ -1,28 +1,27 @@
-
 import Link from "@/lib/next-compat";
 import { usePathname } from "@/lib/next-compat";
 import { Target, Briefcase, KanbanSquare, Inbox, UserRound, ShieldCheck, type LucideIcon } from "lucide-react";
 
-const GROUPS: { label: string; items: { href: string; label: string; icon: LucideIcon; index: string }[] }[] = [
+const GROUPS: { label: string; items: { href: string; label: string; icon: LucideIcon }[] }[] = [
+  {
+    label: "My Account",
+    items: [
+      { href: "/profile", label: "Profile & Resume", icon: UserRound },
+      { href: "/privacy", label: "Settings & Privacy", icon: ShieldCheck },
+    ],
+  },
   {
     label: "Jobs & Applications",
     items: [
-      { href: "/jobs", label: "Jobs", icon: Briefcase, index: "01" },
-      { href: "/sprint", label: "Weekly Sprint", icon: Target, index: "02" },
-      { href: "/pipeline", label: "Applications", icon: KanbanSquare, index: "03" },
+      { href: "/jobs", label: "Jobs", icon: Briefcase },
+      { href: "/sprint", label: "Weekly Sprint", icon: Target },
+      { href: "/pipeline", label: "Applications", icon: KanbanSquare },
     ],
   },
   {
     label: "AI Copilot",
     items: [
-      { href: "/updates", label: "Reply Drafter", icon: Inbox, index: "04" },
-    ],
-  },
-  {
-    label: "My Account",
-    items: [
-      { href: "/profile", label: "Profile & Resume", icon: UserRound, index: "05" },
-      { href: "/privacy", label: "Settings & Privacy", icon: ShieldCheck, index: "06" },
+      { href: "/updates", label: "Reply Drafter", icon: Inbox },
     ],
   },
 ];
@@ -50,7 +49,6 @@ export function SideNav() {
               >
                 <item.icon size={16} strokeWidth={1.75} aria-hidden />
                 <span style={{ flex: 1 }}>{item.label}</span>
-                <span className="nav-index">{item.index}</span>
               </Link>
             ))}
           </div>

@@ -19,15 +19,12 @@ export const Route = createFileRoute("/_authenticated")({
   component: AuthedLayout,
 });
 
-function SidebarFooter() {
+function SidebarAccount() {
   const snapshot = useSnapshot();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const ws = getWorkspace();
   const user = snapshot.user;
-  const pending = listProposals().filter((p) => p.state === "pending").length;
-  const provider = providerStatus();
-  const resend = resendStatus();
   const displayName = ws.candidate.name || user.name || "Job Seeker";
 
   async function signOut() {
@@ -38,50 +35,106 @@ function SidebarFooter() {
   }
 
   return (
-    <div style={{ marginTop: "auto" }}>
+    <div
+      className="card"
+      style={{
+        padding: "12px 14px",
+        background: "#f8fafc",
+        borderRadius: 14,
+        border: "1px solid var(--color-line)",
+        marginBottom: 10,
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+          <div className="avatar-badge">{displayName.charAt(0).toUpperCase() || "U"}</div>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <p
+              style={{
+                margin: 0,
+                fontSize: 13,
+                fontWeight: 700,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                color: "var(--color-ink)",
+              }}
+            >
+              {displayName}
+            </p>
+            <p
+              style={{
+                margin: 0,
+                fontSize: 11,
+                color: "var(--color-ink-faint)",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {user.email || "Free Plan"}
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={signOut}
+          className="mono-xs"
+          style={{
+            background: "none",
+            border: "none",
+            padding: "4px 6px",
+            color: "var(--color-ink-soft)",
+            cursor: "pointer",
+            fontSize: 11,
+            textDecoration: "underline",
+          }}
+          title="Sign out of account"
+        >
+          Sign out
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function SidebarFooter() {
+  const pending = listProposals().filter((p) => p.state === "pending").length;
+  const provider = providerStatus();
+  const resend = resendStatus();
+
+  return (
+    <div style={{ marginTop: "auto", paddingTop: 16 }}>
       {pending > 0 ? (
-        <div style={{ background: "var(--color-warn-soft)", border: "1px solid var(--color-warn-border)", borderRadius: 8, padding: "8px 10px", marginBottom: 12 }}>
+        <div
+          style={{
+            background: "var(--color-warn-soft)",
+            border: "1px solid var(--color-warn-border)",
+            borderRadius: 8,
+            padding: "8px 10px",
+            marginBottom: 12,
+          }}
+        >
           <p className="mono-xs" style={{ color: "var(--color-warn)", margin: 0, fontWeight: 600 }}>
             {pending} update{pending === 1 ? "" : "s"} waiting for confirmation
           </p>
         </div>
       ) : null}
-      <div className="card" style={{ padding: "14px", background: "var(--color-paper)", borderRadius: 12, border: "1px solid var(--color-line)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div className="avatar-badge">{displayName.charAt(0).toUpperCase() || "U"}</div>
-          <div style={{ minWidth: 0, flex: 1 }}>
-            <p style={{ margin: 0, fontSize: 13, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--color-ink)" }}>
-              {displayName}
-            </p>
-            <p style={{ margin: 0, fontSize: 11, color: "var(--color-ink-faint)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {user.email || `${ws.candidate.hoursPerWeek}h/wk · ${ws.jobs.length} jobs`}
-            </p>
-          </div>
-        </div>
 
-        <div style={{ marginTop: 10, paddingTop: 8, borderTop: "1px solid var(--color-line)", display: "grid", gap: 4 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span className="mono-xs" style={{ color: provider.available ? "var(--color-accent)" : "var(--color-ink-faint)", fontWeight: 600 }} title={provider.note}>
-              ● {provider.available ? "AI Copilot Active" : "AI Ready"}
-            </span>
-            <span className="mono-xs" style={{ color: resend.available ? "var(--color-accent)" : "var(--color-ink-faint)", fontWeight: 600 }}>
-              {resend.available ? "Resend Ready" : "Mail Draft"}
-            </span>
-          </div>
-
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4 }}>
-            <button
-              type="button"
-              onClick={signOut}
-              className="mono-xs"
-              style={{ background: "none", border: "none", padding: 0, color: "var(--color-ink-soft)", cursor: "pointer", textDecoration: "underline" }}
-            >
-              Sign out
-            </button>
-            <span className="mono-xs" style={{ color: "var(--color-ink-faint)", fontSize: 10 }}>v2.0</span>
-          </div>
-        </div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 4px" }}>
+        <span
+          className="mono-xs"
+          style={{ color: provider.available ? "var(--color-accent)" : "var(--color-ink-faint)", fontWeight: 600 }}
+          title={provider.note}
+        >
+          ● {provider.available ? "AI Copilot Active" : "AI Ready"}
+        </span>
+        <span className="mono-xs" style={{ color: resend.available ? "var(--color-accent)" : "var(--color-ink-faint)", fontWeight: 600 }}>
+          {resend.available ? "Resend Ready" : "Mail Draft"}
+        </span>
       </div>
+
       <p className="mono-xs" style={{ color: "var(--color-ink-faint)", marginTop: 10, lineHeight: 1.5, textAlign: "center" }}>
         Zero auto-spam · 100% human confirmed
       </p>
@@ -111,11 +164,18 @@ function AuthedLayout() {
             </Link>
             <span className="wordmark-badge">AI COPILOT</span>
           </div>
-          <p style={{ margin: "8px 0 16px", fontSize: 11.5, color: "var(--color-ink-faint)", lineHeight: 1.4 }}>
+          <p style={{ margin: "8px 0 14px", fontSize: 11.5, color: "var(--color-ink-faint)", lineHeight: 1.4 }}>
             Autonomous Career Agent · For Job Seekers
           </p>
         </div>
+
+        {/* Account Section placed at the TOP of the sidebar */}
+        <Suspense fallback={null}>
+          <SidebarAccount />
+        </Suspense>
+
         <SideNav />
+
         <Suspense fallback={null}>
           <SidebarFooter />
         </Suspense>
