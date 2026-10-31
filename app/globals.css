@@ -10,6 +10,12 @@
   --color-line: #e2e8f0;
   --color-line-soft: #f1f5f9;
 
+  /* Jobright Brand Colors */
+  --color-jobright-bg: #ebf9e8;
+  --color-jobright-bg-light: #f4fcf3;
+  --color-jobright-green: #00d084;
+  --color-jobright-dark: #0a0a0a;
+
   /* Jobright-style Primary Indigo/Blue */
   --color-brand: #2563eb;
   --color-brand-soft: #eff6ff;

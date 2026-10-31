@@ -3,6 +3,7 @@ import { Inter, Instrument_Serif } from "next/font/google";
 import { Suspense } from "react";
 import { connection } from "next/server";
 import "./globals.css";
+import { AppShell } from "@/components/app-shell";
 import { SideNav } from "@/components/side-nav";
 import { getWorkspace } from "@/lib/insights";
 import { listProposals } from "@/lib/db";
@@ -85,37 +86,38 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <a className="skip-link" href="#main">
           Skip to content
         </a>
-        <div className="shell">
-          <aside className="sidebar">
-            <div>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <p className="wordmark" style={{ margin: 0 }}>
-                  <span style={{ color: "var(--color-brand)" }}>⚡</span> Shortlist
+        <AppShell
+          sidebar={
+            <>
+              <div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <p className="wordmark" style={{ margin: 0 }}>
+                    <span style={{ color: "var(--color-brand)" }}>⚡</span> Shortlist
+                  </p>
+                  <span className="wordmark-badge">AI COPILOT</span>
+                </div>
+                <p
+                  style={{
+                    margin: "6px 0 16px",
+                    fontSize: 12,
+                    color: "var(--color-ink-faint)",
+                    lineHeight: 1.4,
+                  }}
+                >
+                  Autonomous Career Agent & Application Engine
                 </p>
-                <span className="wordmark-badge">AI COPILOT</span>
               </div>
-              <p
-                style={{
-                  margin: "6px 0 16px",
-                  fontSize: 12,
-                  color: "var(--color-ink-faint)",
-                  lineHeight: 1.4,
-                }}
-              >
-                Autonomous Career Agent & Application Engine
-              </p>
-            </div>
-            <Suspense fallback={<NavSkeleton />}>
-              <SideNav />
-            </Suspense>
-            <Suspense fallback={null}>
-              <SidebarFooter />
-            </Suspense>
-          </aside>
-          <main id="main" className="page">
-            {children}
-          </main>
-        </div>
+              <Suspense fallback={<NavSkeleton />}>
+                <SideNav />
+              </Suspense>
+              <Suspense fallback={null}>
+                <SidebarFooter />
+              </Suspense>
+            </>
+          }
+        >
+          {children}
+        </AppShell>
       </body>
     </html>
   );

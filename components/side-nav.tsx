@@ -7,7 +7,7 @@ const GROUPS: { label: string; items: { href: string; label: string; icon: strin
   {
     label: "Core Workspace",
     items: [
-      { href: "/", label: "Weekly Sprint", icon: "🎯", index: "01" },
+      { href: "/sprint", label: "Weekly Sprint", icon: "🎯", index: "01" },
       { href: "/jobs", label: "AI Job Matches", icon: "💼", index: "02" },
       { href: "/pipeline", label: "Application Tracker", icon: "📊", index: "03" },
     ],
@@ -36,6 +36,23 @@ export function SideNav() {
 
   return (
     <nav aria-label="Main">
+      <div style={{ marginBottom: 16 }}>
+        <Link
+          href="/"
+          className="nav-link"
+          style={{
+            background: "linear-gradient(135deg, #ebf9e8 0%, #d1fae5 100%)",
+            color: "#065f46",
+            border: "1px solid #a7f3d0",
+            fontWeight: 650,
+          }}
+        >
+          <span>🌐</span>
+          <span style={{ flex: 1 }}>Jobright Home</span>
+          <span style={{ fontSize: 11, opacity: 0.8 }}>↗</span>
+        </Link>
+      </div>
+
       {GROUPS.map((group) => (
         <div key={group.label} style={{ marginBottom: 20 }}>
           <p className="eyebrow" style={{ margin: "0 0 8px 10px", fontSize: 10 }}>
