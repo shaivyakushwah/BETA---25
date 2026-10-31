@@ -228,48 +228,17 @@ function Detail() {
               </p>
             </section>
           ) : null}
-                </Link>
-                .
+
+          {job.salaryMin ? (
+            <section className="card card-pad" style={{ background: "#f8fafc", borderRadius: 16 }}>
+              <p className="eyebrow" style={{ margin: "0 0 6px" }}>
+                Compensation
               </p>
-            ) : null}
-
-            {trust.checked.length ? (
-              <>
-                <hr className="rule" style={{ margin: "14px 0 10px" }} />
-                <p className="eyebrow" style={{ margin: 0 }}>
-                  Also checked
-                </p>
-                <ul style={{ listStyle: "none", padding: 0, margin: "6px 0 0", fontSize: 12, color: "var(--color-ink-soft)" }}>
-                  {trust.checked.map((item) => (
-                    <li key={item} style={{ padding: "2px 0" }}>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </>
-            ) : null}
-
-            <p className="mono-xs" style={{ color: "var(--color-ink-faint)", marginTop: 12, lineHeight: 1.6 }}>
-              We never remove a listing for being doubtful. Your override is recorded, not used to hide it.
-            </p>
-          </section>
-
-          <section className="card card-pad" style={{ background: "#fbf9f2" }}>
-            <p className="eyebrow" style={{ margin: 0 }}>
-              Time and money
-            </p>
-            <p style={{ margin: "6px 0 0", fontSize: 13 }}>
-              About {insight.minutes} minutes: reading the posting, tailoring the draft, and filling the form.
-            </p>
-            {job.salaryMin ? (
-              <p style={{ margin: "6px 0 0", fontSize: 13 }}>
-                Advertised {salary}.{" "}
-                {ws.candidate.minSalary && job.salaryMin < ws.candidate.minSalary
-                  ? `Below your stated floor of £${ws.candidate.minSalary.toLocaleString()}.`
-                  : "At or above your stated floor."}
+              <p style={{ margin: 0, fontSize: 13.5, fontWeight: 600 }}>
+                Advertised {salary}
               </p>
-            ) : null}
-          </section>
+            </section>
+          ) : null}
         </aside>
       </div>
     </>
