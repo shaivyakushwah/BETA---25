@@ -51,7 +51,7 @@ function Profile() {
   const candidate = ws.candidate;
   const [activeTab, setActiveTab] = useState<TabType>("personal");
 
-  // Controlled Profile Candidate Info (Top Card & Tabs)
+  // Candidate Personal Info (from DB / resume extraction)
   const [candidateName, setCandidateName] = useState(candidate.name || "");
   const [candidateLocation, setCandidateLocation] = useState(candidate.location || "");
   const [candidateHeadline, setCandidateHeadline] = useState(candidate.headline || "");
@@ -59,7 +59,10 @@ function Profile() {
   const [personalEmail, setPersonalEmail] = useState(candidate.email || "");
   const [personalLinkedin, setPersonalLinkedin] = useState("");
 
-  // Career Preferences & Target Roles Form State - UNPREFILLED
+  // Resume Text (KEEP RESUME EXTRACTED TEXT AS IT IS)
+  const [resumeContent, setResumeContent] = useState(ws.resumeText || "");
+
+  // Career Preferences & Target Roles Form (DO NOT PREFILL)
   const [prefName, setPrefName] = useState("");
   const [prefLocation, setPrefLocation] = useState("");
   const [prefEmail, setPrefEmail] = useState("");
@@ -68,9 +71,8 @@ function Profile() {
   const [prefHours, setPrefHours] = useState("");
   const [prefMinSalary, setPrefMinSalary] = useState("");
   const [prefTargetRoles, setPrefTargetRoles] = useState("");
-  const [prefResume, setPrefResume] = useState("");
 
-  // Editable personal info inline modal state
+  // Editable personal info state (pencil modal/inline)
   const [isEditingPersonal, setIsEditingPersonal] = useState(false);
 
   // Status & Notification banners
@@ -151,10 +153,30 @@ function Profile() {
           if (Array.isArray(parsed) && parsed.length > 0) setSkillsList(parsed);
         } catch {}
       }
+
+      // Check if user previously saved specific career preferences
+      const savedPrefName = localStorage.getItem("shortlist_pref_name");
+      if (savedPrefName) setPrefName(savedPrefName);
+      const savedPrefLoc = localStorage.getItem("shortlist_pref_location");
+      if (savedPrefLoc) setPrefLocation(savedPrefLoc);
+      const savedPrefMail = localStorage.getItem("shortlist_pref_email");
+      if (savedPrefMail) setPrefEmail(savedPrefMail);
+      const savedPrefHead = localStorage.getItem("shortlist_pref_headline");
+      if (savedPrefHead) setPrefHeadline(savedPrefHead);
+      const savedPrefRoles = localStorage.getItem("shortlist_pref_target_roles");
+      if (savedPrefRoles) setPrefTargetRoles(savedPrefRoles);
+      const savedPrefSen = localStorage.getItem("shortlist_pref_seniority");
+      if (savedPrefSen) setPrefSeniority(savedPrefSen);
+      const savedPrefHours = localStorage.getItem("shortlist_pref_hours");
+      if (savedPrefHours) setPrefHours(savedPrefHours);
+      const savedPrefSal = localStorage.getItem("shortlist_pref_minsalary");
+      if (savedPrefSal) setPrefMinSalary(savedPrefSal);
     }
   }, []);
 
-  // Handler for structured resume extraction
+  // Handler for structured resume extraction:
+  // Updates candidate card, education, experience, skills, and resume text,
+  // but DOES NOT PREFILL the career preferences form panel.
   function handleResumeExtracted(data: ExtractedResumeData) {
     if (data.name) {
       setCandidateName(data.name);
@@ -193,8 +215,13 @@ function Profile() {
       localStorage.setItem("shortlist_profile_skills", JSON.stringify(data.skills));
     }
 
+    // Keep resume extracted text as it is
+    if (data.rawText) {
+      setResumeContent(data.rawText);
+    }
+
     setExtractionAlert(
-      `Resume information extracted successfully for ${data.name || "candidate"}! Profile card, education, experience, and skills tabs have been updated.`
+      `Resume text & candidate profile extracted for ${data.name || "candidate"}.`
     );
   }
 
@@ -206,39 +233,37 @@ function Profile() {
 
     try {
       const formData = new FormData(e.currentTarget);
-      const finalName = prefName || candidateName || candidate.name || "Job Seeker";
-      const finalLocation = prefLocation || candidateLocation || candidate.location || "";
-      const finalHeadline = prefHeadline || candidateHeadline || candidate.headline || "";
-      const finalEmail = prefEmail || personalEmail || candidate.email || "";
+      const finalName = prefName.trim() || candidateName || "Job Seeker";
+      const finalEmail = prefEmail.trim() || personalEmail || "";
+      const finalLocation = prefLocation.trim() || candidateLocation || "";
+      const finalHeadline = prefHeadline.trim() || candidateHeadline || "";
+      const finalRoles = prefTargetRoles.trim() || "";
 
       formData.set("name", finalName);
       formData.set("email", finalEmail);
       formData.set("location", finalLocation);
       formData.set("headline", finalHeadline);
-      formData.set("targetRoles", prefTargetRoles || candidate.targetRoles.join(", "));
-      formData.set("hours", prefHours || String(candidate.hoursPerWeek || 20));
-      formData.set("minSalary", prefMinSalary || (candidate.minSalary ? String(candidate.minSalary) : ""));
-      formData.set("seniority", prefSeniority || candidate.seniority || "junior");
-      formData.set("resume", prefResume || ws.resumeText || "");
+      formData.set("targetRoles", finalRoles);
+      formData.set("hours", prefHours.trim() || "20");
+      formData.set("minSalary", prefMinSalary.trim());
+      formData.set("seniority", prefSeniority.trim() || "junior");
+      formData.set("resume", resumeContent);
 
       // Persist to local storage
-      if (finalName) {
-        setCandidateName(finalName);
-        localStorage.setItem("shortlist_profile_name", finalName);
-      }
-      if (finalLocation) {
-        setCandidateLocation(finalLocation);
-        localStorage.setItem("shortlist_profile_location", finalLocation);
-      }
-      if (finalHeadline) {
-        setCandidateHeadline(finalHeadline);
-        localStorage.setItem("shortlist_profile_headline", finalHeadline);
-      }
-      if (finalEmail) {
-        setPersonalEmail(finalEmail);
-        localStorage.setItem("shortlist_profile_email", finalEmail);
-      }
+      if (prefName.trim()) localStorage.setItem("shortlist_pref_name", prefName);
+      if (prefLocation.trim()) localStorage.setItem("shortlist_pref_location", prefLocation);
+      if (prefEmail.trim()) localStorage.setItem("shortlist_pref_email", prefEmail);
+      if (prefHeadline.trim()) localStorage.setItem("shortlist_pref_headline", prefHeadline);
+      if (prefTargetRoles.trim()) localStorage.setItem("shortlist_pref_target_roles", prefTargetRoles);
+      if (prefSeniority.trim()) localStorage.setItem("shortlist_pref_seniority", prefSeniority);
+      if (prefHours.trim()) localStorage.setItem("shortlist_pref_hours", prefHours);
+      if (prefMinSalary.trim()) localStorage.setItem("shortlist_pref_minsalary", prefMinSalary);
+
+      localStorage.setItem("shortlist_profile_name", finalName);
+      localStorage.setItem("shortlist_profile_location", finalLocation);
+      localStorage.setItem("shortlist_profile_headline", finalHeadline);
       localStorage.setItem("shortlist_profile_phone", personalPhone);
+      localStorage.setItem("shortlist_profile_email", finalEmail);
       localStorage.setItem("shortlist_profile_linkedin", personalLinkedin);
       localStorage.setItem("shortlist_profile_education", JSON.stringify(educationList));
       localStorage.setItem("shortlist_profile_experience", JSON.stringify(experienceList));
@@ -247,7 +272,7 @@ function Profile() {
       // Persist to backend Supabase database
       await saveProfileAction(formData);
 
-      setSaveSuccessMsg("✓ Profile preferences saved successfully!");
+      setSaveSuccessMsg("✓ Profile and preferences saved successfully!");
       setExtractionAlert(null);
       setTimeout(() => setSaveSuccessMsg(null), 5000);
     } catch (err: any) {
@@ -297,16 +322,9 @@ function Profile() {
     setTimeout(() => setSaveSuccessMsg(null), 3500);
   }
 
-  const displayName = candidateName || "SUNNY PARIHAR";
-  const displayHeadline = candidateHeadline || "Add your headline or upload resume";
-  const displayLocation = candidateLocation || "Location not set";
-  const displayEmail = personalEmail || "Email not set";
-  const displayPhone = personalPhone || "+91-9625088837";
-  const displayLinkedin = personalLinkedin || "https://www.linkedin.com/in/sunny-parihar";
-
   return (
     <div>
-      {/* Top Header with Upload Resume Button (Turbo box removed) */}
+      {/* Top Header with Upload Resume Button (Turbo Box Removed) */}
       <div
         style={{
           display: "flex",
@@ -325,7 +343,7 @@ function Profile() {
         </div>
 
         {/* Prominent Upload Resume Button at Top */}
-        <div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <ResumeUpload
             onExtracted={handleResumeExtracted}
             buttonText="+ Upload Resume"
@@ -444,10 +462,10 @@ function Profile() {
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                   <div>
                     <h2 style={{ fontSize: 26, fontWeight: 800, margin: 0, textTransform: "uppercase", letterSpacing: "-0.01em" }}>
-                      {displayName}
+                      {candidateName || "ADD YOUR NAME"}
                     </h2>
                     <p style={{ margin: "4px 0 0", fontSize: 14, color: "#64748b" }}>
-                      {displayHeadline}
+                      {candidateHeadline || "Headline / Specialization"}
                     </p>
                   </div>
                   <button
@@ -487,7 +505,7 @@ function Profile() {
                               setCandidateName(e.target.value);
                               localStorage.setItem("shortlist_profile_name", e.target.value);
                             }}
-                            placeholder="e.g. Sunny Parihar"
+                            placeholder="e.g. Your Full Name"
                           />
                         </div>
                         <div>
@@ -499,7 +517,7 @@ function Profile() {
                               setCandidateLocation(e.target.value);
                               localStorage.setItem("shortlist_profile_location", e.target.value);
                             }}
-                            placeholder="e.g. Bhopal, India"
+                            placeholder="e.g. City, Country"
                           />
                         </div>
                       </div>
@@ -512,7 +530,7 @@ function Profile() {
                             setCandidateHeadline(e.target.value);
                             localStorage.setItem("shortlist_profile_headline", e.target.value);
                           }}
-                          placeholder="e.g. AI Engineer | Generative AI & Full Stack"
+                          placeholder="e.g. Software Engineer | Full Stack"
                         />
                       </div>
                       <div className="grid-2">
@@ -537,7 +555,7 @@ function Profile() {
                               setPersonalEmail(e.target.value);
                               localStorage.setItem("shortlist_profile_email", e.target.value);
                             }}
-                            placeholder="e.g. candidate@example.com"
+                            placeholder="e.g. you@example.com"
                           />
                         </div>
                       </div>
@@ -570,33 +588,39 @@ function Profile() {
 
                 {/* Contact Pills */}
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 16 }}>
-                  {displayLocation !== "Location not set" && (
+                  {candidateLocation && (
                     <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "6px 12px", borderRadius: 999, fontSize: 12.5, color: "#334155" }}>
                       <MapPin size={13} color="#64748b" />
-                      <span>{displayLocation}</span>
+                      <span>{candidateLocation}</span>
                     </div>
                   )}
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "6px 12px", borderRadius: 999, fontSize: 12.5, color: "#334155" }}>
-                    <Mail size={13} color="#64748b" />
-                    <span>{displayEmail}</span>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "6px 12px", borderRadius: 999, fontSize: 12.5, color: "#334155" }}>
-                    <Phone size={13} color="#64748b" />
-                    <span>{displayPhone}</span>
-                  </div>
-                  <a
-                    href={displayLinkedin.startsWith("http") ? displayLinkedin : `https://${displayLinkedin}`}
-                    target="_blank"
-                    rel="noreferrer noopener"
-                    style={{ display: "flex", alignItems: "center", gap: 6, background: "#f0f9ff", border: "1px solid #bae6fd", padding: "6px 12px", borderRadius: 999, fontSize: 12.5, color: "#0284c7", textDecoration: "none" }}
-                  >
-                    <Linkedin size={13} />
-                    <span>{displayLinkedin.replace(/^https?:\/\/(www\.)?/, "")}</span>
-                  </a>
+                  {personalEmail && (
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "6px 12px", borderRadius: 999, fontSize: 12.5, color: "#334155" }}>
+                      <Mail size={13} color="#64748b" />
+                      <span>{personalEmail}</span>
+                    </div>
+                  )}
+                  {personalPhone && (
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "6px 12px", borderRadius: 999, fontSize: 12.5, color: "#334155" }}>
+                      <Phone size={13} color="#64748b" />
+                      <span>{personalPhone}</span>
+                    </div>
+                  )}
+                  {personalLinkedin && (
+                    <a
+                      href={personalLinkedin.startsWith("http") ? personalLinkedin : `https://${personalLinkedin}`}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      style={{ display: "flex", alignItems: "center", gap: 6, background: "#f0f9ff", border: "1px solid #bae6fd", padding: "6px 12px", borderRadius: 999, fontSize: 12.5, color: "#0284c7", textDecoration: "none" }}
+                    >
+                      <Linkedin size={13} />
+                      <span>{personalLinkedin.replace("https://", "").replace("http://", "")}</span>
+                    </a>
+                  )}
                 </div>
               </div>
 
-              {/* Career Preferences & Target Roles Form (UNPREFILLED) */}
+              {/* Career Preferences & Target Roles Form (DO NOT PREFILL) */}
               <div className="card" style={{ padding: "28px", borderRadius: 20 }}>
                 <h3 style={{ fontSize: 17, fontWeight: 700, margin: "0 0 18px", color: "#0f172a" }}>
                   Career Preferences &amp; Target Roles
@@ -613,7 +637,7 @@ function Profile() {
                         name="name"
                         value={prefName}
                         onChange={(e) => setPrefName(e.target.value)}
-                        placeholder="e.g. Sunny Parihar"
+                        placeholder="e.g. Enter full name"
                       />
                     </div>
                     <div>
@@ -626,7 +650,7 @@ function Profile() {
                         name="location"
                         value={prefLocation}
                         onChange={(e) => setPrefLocation(e.target.value)}
-                        placeholder="e.g. Remote, San Francisco, Bangalore"
+                        placeholder="e.g. Remote, New York, London"
                       />
                     </div>
                   </div>
@@ -642,7 +666,7 @@ function Profile() {
                         name="email"
                         value={prefEmail}
                         onChange={(e) => setPrefEmail(e.target.value)}
-                        placeholder="e.g. candidate@example.com"
+                        placeholder="e.g. you@example.com"
                       />
                     </div>
                     <div>
@@ -655,7 +679,7 @@ function Profile() {
                         name="headline"
                         value={prefHeadline}
                         onChange={(e) => setPrefHeadline(e.target.value)}
-                        placeholder="e.g. AI Engineer | Full Stack Developer"
+                        placeholder="e.g. Full Stack Developer | React, Python"
                       />
                     </div>
                   </div>
@@ -692,7 +716,7 @@ function Profile() {
                         max={40}
                         value={prefHours}
                         onChange={(e) => setPrefHours(e.target.value)}
-                        placeholder="e.g. 40"
+                        placeholder="e.g. 20"
                       />
                     </div>
                     <div>
@@ -722,22 +746,30 @@ function Profile() {
                       name="targetRoles"
                       value={prefTargetRoles}
                       onChange={(e) => setPrefTargetRoles(e.target.value)}
-                      placeholder="e.g. python, software engineer, fullstack"
+                      placeholder="e.g. Python Developer, Software Engineer, Full Stack"
                     />
                   </div>
 
                   <div>
-                    <label className="field" htmlFor="resume">
-                      Resume Text (Optional)
-                    </label>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                      <label className="field" htmlFor="resume" style={{ margin: 0 }}>
+                        Resume Text (Extracted automatically from PDF/TXT upload)
+                      </label>
+                      <ResumeUpload
+                        onExtracted={handleResumeExtracted}
+                        buttonText="Re-upload Resume"
+                        variant="secondary"
+                        showHelperText={false}
+                      />
+                    </div>
                     <textarea
                       className="textarea"
                       id="resume"
                       name="resume"
-                      rows={6}
-                      value={prefResume}
-                      onChange={(e) => setPrefResume(e.target.value)}
-                      placeholder="Paste additional notes or custom resume text here..."
+                      rows={10}
+                      value={resumeContent}
+                      onChange={(e) => setResumeContent(e.target.value)}
+                      placeholder="Upload your resume above or paste resume text here..."
                     />
                   </div>
 
@@ -748,7 +780,7 @@ function Profile() {
                       disabled={isSaving}
                       style={{ borderRadius: 999, padding: "11px 28px", fontWeight: 700 }}
                     >
-                      {isSaving ? "Saving preferences..." : "Save Profile"}
+                      {isSaving ? "Saving changes..." : "Save Profile"}
                     </button>
                     {saveSuccessMsg && (
                       <span style={{ fontSize: 13, color: "#059669", fontWeight: 600 }}>
@@ -767,7 +799,7 @@ function Profile() {
                     AI Resume Scoring &amp; Optimization
                   </h3>
                 </div>
-                <ResumeScorer initialTargetRole={prefTargetRoles ? prefTargetRoles.split(",")[0]?.trim() : "Python Engineer"} />
+                <ResumeScorer initialTargetRole={prefTargetRoles.split(",")[0]?.trim() || "Software Engineer"} />
               </div>
             </div>
           )}
@@ -994,7 +1026,7 @@ function Profile() {
 
           {activeTab === "eeo" && (
             <div className="card" style={{ padding: "28px", borderRadius: 20 }}>
-              <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0, marginBottom: 12 }}>Equal Employment Opportunity</h3>
+              <h3 style={{ fontSize: 18, fontWeight: 800, margin: "0 0 12px" }}>Equal Employment Opportunity</h3>
               <p style={{ fontSize: 13, color: "#64748b", margin: "0 0 20px", lineHeight: 1.5 }}>
                 Voluntary demographic information used only when an employer application requests it. You may change or clear these answers at any time.
               </p>
@@ -1021,7 +1053,7 @@ function Profile() {
           )}
         </div>
 
-        {/* Right Sidebar Column (Jobright Style - Coral box removed) */}
+        {/* Right Sidebar Column (Red Alert Box Removed) */}
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
           {/* Quick Actions Card */}
           <div className="card" style={{ padding: "18px", borderRadius: 16 }}>
