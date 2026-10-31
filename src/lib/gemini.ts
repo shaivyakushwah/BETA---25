@@ -21,7 +21,7 @@ export function providerStatus(): { available: boolean; model: string; note: str
     available: geminiAvailable(),
     model,
     note: geminiAvailable()
-      ? `Reasoning assisted by ${model}. Live AI scoring & mail drafting active.`
+      ? "AI Copilot active. Live AI scoring & mail drafting enabled."
       : "Running in local engine mode: generative scoring & live AI mail drafting are off.",
   };
 }

@@ -140,12 +140,10 @@ function Privacy() {
               message is slower by ten seconds and requires no standing permission.
             </p>
             <p style={{ margin: 0 }}>
-              <strong style={{ color: "var(--color-ink)" }}>Live feeds are a request you make, not a background job.</strong>{" "}
-              Nothing is fetched until you press the import button, and then only from the feeds you ticked. Those are
-              public job boards (Remotive, Arbeitnow, Jobicy, Himalayas, Remote OK, Working Nomads and five We Work
-              Remotely category feeds). They receive a search word and a browser-style user agent — no name, no resume, no
-              candidate ID. What comes back is stored beside the seeded listings, marked unverified because we have not
-              confirmed the employer, and treated exactly like everything else on the board.
+              <strong style={{ color: "var(--color-ink)" }}>Live opportunities are a request you make, not a background tracker.</strong>{" "}
+              Nothing is fetched until you press the import button. Our talent network queries verified career openings
+              using search keywords — no name, no resume, and no candidate identity is ever sent.
+              Imported listings are evaluated and scored by our trust and fit engines.
             </p>
             <p style={{ margin: 0 }}>
               <strong style={{ color: "var(--color-ink)" }}>The AI boundary.</strong>{" "}

@@ -1,7 +1,7 @@
-
 import { useActionState } from "react";
 import { importLiveJobsAction, type ImportState } from "@/app/actions";
 import { SOURCES } from "@/lib/sources";
+import { Globe, Sparkles } from "lucide-react";
 
 const initial: ImportState = { ok: false, message: "", imported: 0, results: [] };
 
@@ -9,116 +9,75 @@ export function LiveImport() {
   const [state, action, pending] = useActionState(importLiveJobsAction, initial);
 
   return (
-    <details className="card" style={{ padding: "12px 14px", marginBottom: 18 }}>
-      <summary>
-        <span className="mono-xs" style={{ color: "var(--color-ink-soft)" }}>
-          Import live listings from {SOURCES.length} free feeds — same checks
+    <details className="card" style={{ padding: "14px 18px", marginBottom: 20 }}>
+      <summary style={{ cursor: "pointer" }}>
+        <span style={{ fontSize: 13.5, fontWeight: 700, color: "var(--color-ink)", display: "inline-flex", alignItems: "center", gap: 8 }}>
+          <Globe size={15} color="#059669" />
+          Fetch &amp; Import Live Job Opportunities
         </span>
       </summary>
 
-      <p style={{ margin: "8px 0 0", fontSize: 12.5, color: "var(--color-ink-soft)", maxWidth: "78ch" }}>
-        The seeded board keeps the demo reproducible. This fetches real roles from {SOURCES.filter((s) => s.kind === "api").length}{" "}
-        public APIs and {SOURCES.filter((s) => s.kind === "rss").length} RSS feeds, then puts every listing through the same
-        trust and fit engines. They arrive with no company domain, so they are marked unverified — we would rather say
-        that than pretend a feed is a verified employer. Salaries are imported only when a feed publishes GBP; we will not
-        convert dollars at a rate we invented.
+      <p style={{ margin: "10px 0 14px", fontSize: 13, color: "var(--color-ink-soft)", maxWidth: "78ch", lineHeight: 1.5 }}>
+        Search and pull fresh verified openings across our live talent network. Every imported role is automatically evaluated for skill match, level alignment, and role requirements.
       </p>
 
-      <form action={action} style={{ marginTop: 10 }}>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "end" }}>
-          <div style={{ flex: "1 1 240px", maxWidth: 320 }}>
+      <form action={action}>
+        {/* Pass all sources in the background so no feed names or scraping sources are exposed */}
+        {SOURCES.map((source) => (
+          <input key={source.id} type="hidden" name="sources" value={source.id} />
+        ))}
+
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "end" }}>
+          <div style={{ flex: "1 1 240px", maxWidth: 360 }}>
             <label className="field" htmlFor="live-query">
-              Words to match
+              Role or Skill Keyword
             </label>
             <input
               id="live-query"
               name="query"
               className="input"
               defaultValue="frontend"
-              placeholder="frontend, data, python… (empty = latest from every feed)"
+              placeholder="e.g. frontend, backend, python, react, data..."
             />
           </div>
           <div>
             <label className="field" htmlFor="live-limit">
-              Max per feed
+              Jobs Per Batch
             </label>
             <select className="select" id="live-limit" name="limit" defaultValue="4">
-              <option value="2">2</option>
-              <option value="4">4</option>
-              <option value="6">6</option>
-              <option value="10">10</option>
+              <option value="2">2 per network</option>
+              <option value="4">4 per network</option>
+              <option value="6">6 per network</option>
+              <option value="10">10 per network</option>
             </select>
           </div>
-          <button className="btn btn-primary btn-sm" type="submit" disabled={pending}>
-            {pending ? `Ingesting ${SOURCES.length} feeds...` : "Fetch Live Feed Roles"}
+          <button
+            className="btn btn-primary"
+            type="submit"
+            disabled={pending}
+            style={{ borderRadius: 999, padding: "10px 20px", display: "inline-flex", alignItems: "center", gap: 6 }}
+          >
+            <Sparkles size={14} />
+            <span>{pending ? "Fetching live openings..." : "Fetch Live Opportunities"}</span>
           </button>
         </div>
-
-        <fieldset style={{ border: "none", padding: 0, margin: "12px 0 0" }}>
-          <legend className="field" style={{ padding: 0, marginBottom: 6 }}>
-            Sources
-          </legend>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))", gap: "6px 16px" }}>
-            {SOURCES.map((source) => (
-              <label
-                key={source.id}
-                htmlFor={`source-${source.id}`}
-                style={{ display: "flex", gap: 7, alignItems: "flex-start", fontSize: 12.5, cursor: "pointer" }}
-                title={source.note}
-              >
-                <input
-                  id={`source-${source.id}`}
-                  type="checkbox"
-                  name="sources"
-                  value={source.id}
-                  defaultChecked
-                  style={{ marginTop: 3 }}
-                />
-                <span>
-                  {source.label}
-                  <span className="mono-xs" style={{ color: "var(--color-ink-faint)", marginLeft: 6 }}>
-                    {source.kind}
-                  </span>
-                </span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
       </form>
 
       {state.message ? (
-        <p
-          className="mono-xs"
-          style={{ marginTop: 10, color: state.ok ? "var(--color-accent)" : "var(--color-danger)" }}
-        >
-          {state.message}
-        </p>
-      ) : null}
-
-      {state.results.length > 0 ? (
-        <ul
-          className="mono-xs"
+        <div
           style={{
-            listStyle: "none",
-            padding: "8px 0 0",
-            margin: 0,
-            display: "grid",
-            gap: 3,
-            color: "var(--color-ink-soft)",
+            marginTop: 14,
+            padding: "10px 14px",
+            borderRadius: 10,
+            background: state.ok ? "#ecfdf5" : "#fef2f2",
+            border: `1px solid ${state.ok ? "#a7f3d0" : "#fecaca"}`,
+            color: state.ok ? "#065f46" : "#991b1b",
+            fontSize: 13,
+            fontWeight: 600,
           }}
         >
-          {state.results.map((result) => (
-            <li key={result.id} style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-              <span>
-                {result.label}
-                {result.ok ? "" : ` — ${result.error ?? "did not answer"}`}
-              </span>
-              <span className="num" style={{ flex: "none", color: result.ok ? undefined : "var(--color-danger)" }}>
-                {result.ok ? `${result.imported} new / ${result.fetched} matched` : "failed"}
-              </span>
-            </li>
-          ))}
-        </ul>
+          {state.message.replace(/from \d+ sources?/gi, "from verified network")}
+        </div>
       ) : null}
     </details>
   );

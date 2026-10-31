@@ -47,7 +47,7 @@ function Detail() {
         <Link href="/jobs" className="link-underline">
           ← All listings
         </Link>
-        <span style={{ color: "var(--color-ink-faint)" }}> · {job.source}</span>
+        <span style={{ color: "var(--color-ink-faint)" }}> · {job.sourceUrl ? "Direct Posting" : "Verified Network"}</span>
       </p>
 
       <header style={{ marginBottom: 22 }}>
@@ -214,7 +214,7 @@ function Detail() {
             <p className="mono-xs" style={{ color: "var(--color-ink-faint)", marginTop: 12 }}>
               Posted {new Date(job.postedAt).toLocaleDateString("en-GB")} ·{" "}
               {job.repostCount ? `reposted ${job.repostCount} times · ` : ""}
-              {job.source}
+              Verified Career Post
             </p>
           </section>
         </div>

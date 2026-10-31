@@ -73,7 +73,7 @@ function Week() {
                 <>
                   <p style={{ margin: 0, fontWeight: 700, fontSize: 16 }}>No listings in your workspace yet.</p>
                   <p style={{ margin: "6px 0 14px", fontSize: 13, color: "var(--color-ink-soft)" }}>
-                    Import live roles from 11 free feeds or paste a job advert URL to start planning your week.
+                    Import live job matches or paste a job URL to start planning your week.
                   </p>
                   <Link href="/jobs" className="btn btn-primary btn-sm">
                     Go to Listings &amp; Import

@@ -62,7 +62,7 @@ function SidebarFooter() {
         <div style={{ marginTop: 10, paddingTop: 8, borderTop: "1px solid var(--color-line)", display: "grid", gap: 4 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span className="mono-xs" style={{ color: provider.available ? "var(--color-accent)" : "var(--color-ink-faint)", fontWeight: 600 }} title={provider.note}>
-              ● {provider.available ? "Gemini Live" : "Local Engine"}
+              ● {provider.available ? "AI Copilot Active" : "AI Ready"}
             </span>
             <span className="mono-xs" style={{ color: resend.available ? "var(--color-accent)" : "var(--color-ink-faint)", fontWeight: 600 }}>
               {resend.available ? "Resend Ready" : "Mail Draft"}

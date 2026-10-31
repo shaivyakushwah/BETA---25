@@ -69,7 +69,7 @@ export function EmailDrafter({
         <div>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "2px 10px", borderRadius: 999, background: "#ecfdf5", border: "1px solid #a7f3d0", color: "#065f46", fontSize: 11, fontWeight: 700, fontFamily: "var(--font-mono)", textTransform: "uppercase", marginBottom: 6 }}>
             
-            <span>Gemini AI Mail Drafting &amp; Resend Dispatch</span>
+            <span>AI Mail Drafting &amp; Dispatch</span>
           </div>
           <h3 style={{ margin: "4px 0 0", fontSize: 18, fontWeight: 700, color: "#0f172a" }}>
             Tailored Outreach &amp; Application Emails
@@ -140,7 +140,7 @@ export function EmailDrafter({
             className="btn btn-primary"
             style={{ width: "100%", padding: "9px 18px" }}
           >
-            {isDrafting ? "Drafting with Gemini…" : "Draft Email with AI"}
+            {isDrafting ? "Drafting with AI…" : "Draft Email with AI"}
           </button>
         </div>
       </div>

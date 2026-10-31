@@ -165,7 +165,7 @@ export function ApplicationWorkspace({ application, job, catalog, discarded, unc
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
           <h2 style={{ fontSize: 19, margin: 0 }}>What you can point to</h2>
           <button className="btn btn-sm" type="button" onClick={askModel} disabled={pending}>
-            {gemini ? "Ask Gemini to re-rank" : "Local matcher"}
+            {gemini ? "Ask AI Copilot to re-rank" : "Re-rank Highlights"}
           </button>
         </div>
         <p style={{ fontSize: 12.5, color: "var(--color-ink-soft)", margin: "4px 0 12px" }}>

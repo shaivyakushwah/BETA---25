@@ -27,7 +27,7 @@ export function ResumeScorer({ initialTargetRole }: { initialTargetRole?: string
             Evaluate Resume Quality &amp; ATS Match
           </h3>
           <p style={{ margin: "4px 0 0", fontSize: 13, color: "#64748b" }}>
-            Audit your resume with Gemini AI against modern technical hiring benchmarks.
+            Audit your resume with our AI Engine against modern technical hiring benchmarks.
           </p>
         </div>
 
@@ -100,7 +100,7 @@ export function ResumeScorer({ initialTargetRole }: { initialTargetRole?: string
                 Interview Readiness: {result.interviewReadiness}
               </span>
               <span style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "#94a3b8" }}>
-                {result.source === "gemini" ? "Gemini Powered" : "Local Rules"}
+                {result.source === "gemini" ? "AI Engine Powered" : "Standard Rules"}
               </span>
             </div>
           </div>
