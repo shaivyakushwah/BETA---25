@@ -15,7 +15,8 @@ export function registerRuntime(r: AnyRouter, q: QueryClient) {
 export const snapshotQuery = queryOptions({
   queryKey: ["snapshot"],
   queryFn: () => getSnapshotFn(),
-  staleTime: 30_000,
+  staleTime: 60_000,
+  gcTime: 10 * 60_000,
 });
 
 /** Loads the signed-in person's data and makes it readable through `@/lib/db`. */

@@ -64,11 +64,23 @@ function scoreLine(line: ResumeLine): number {
   return score;
 }
 
+const lineSkillsMap = new Map<string, string[]>();
+
+export function getLineSkills(line: ResumeLine): string[] {
+  let found = lineSkillsMap.get(line.text);
+  if (!found) {
+    found = skillsIn(line.text);
+    if (lineSkillsMap.size > 1000) lineSkillsMap.clear();
+    lineSkillsMap.set(line.text, found);
+  }
+  return found;
+}
+
 /** The best line in the resume that genuinely mentions this skill. */
 export function findEvidence(lines: ResumeLine[], skillId: string): { line: number; quote: string } | null {
-  const hits = lines.filter((line) => skillsIn(line.text).includes(skillId));
+  const hits = lines.filter((line) => getLineSkills(line).includes(skillId));
   if (hits.length === 0) return null;
-  const best = [...hits].sort((a, b) => scoreLine(b) - scoreLine(a) || a.n - b.n)[0];
+  const best = hits.length === 1 ? hits[0] : [...hits].sort((a, b) => scoreLine(b) - scoreLine(a) || a.n - b.n)[0];
   return { line: best.n, quote: best.text };
 }
 

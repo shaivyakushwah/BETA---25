@@ -14,6 +14,8 @@ import { ShieldCheck } from "lucide-react";
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   beforeLoad: async () => {
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (sessionData.session?.user) return;
     const { data } = await supabase.auth.getUser();
     if (!data.user) throw redirect({ to: "/login" });
   },

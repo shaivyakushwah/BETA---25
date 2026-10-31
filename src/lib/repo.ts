@@ -80,17 +80,29 @@ async function applyRetention(repo: Repo, candidateRow: any) {
 }
 
 export async function loadSnapshot(repo: Repo, status: ServiceStatus): Promise<Snapshot> {
-  const candidateRow = await ensureCandidate(repo);
-  await applyRetention(repo, candidateRow);
   const sb = repo.sb;
-  const [resume, jobs, decisions, applications, events, proposals] = await Promise.all([
+  
+  // Concurrently fetch candidate profile and all workspace tables in parallel!
+  const [candidateRes, resume, jobs, decisions, applications, events, proposals] = await Promise.all([
+    sb.from("candidates").select("*").eq("user_id", repo.uid).maybeSingle(),
     sb.from("resumes").select("text").eq("user_id", repo.uid).order("id", { ascending: false }).limit(1).maybeSingle(),
-    sb.from("jobs").select("*").eq("user_id", repo.uid).order("posted_at", { ascending: false }).limit(5000),
+    sb.from("jobs").select("*").eq("user_id", repo.uid).order("posted_at", { ascending: false }).limit(300),
     sb.from("decisions").select("*").eq("user_id", repo.uid),
     sb.from("applications").select("*").eq("user_id", repo.uid).order("created_at", { ascending: false }),
     sb.from("application_events").select("*").eq("user_id", repo.uid).order("at", { ascending: false }),
     sb.from("update_proposals").select("*").eq("user_id", repo.uid).order("created_at", { ascending: false }),
   ]);
+
+  let candidateRow = check(candidateRes);
+  if (!candidateRow) {
+    candidateRow = await ensureCandidate(repo);
+  }
+
+  // Run retention check asynchronously in background so page loading is never blocked
+  if (candidateRow) {
+    void applyRetention(repo, candidateRow).catch((err) => console.warn("Background retention note:", err));
+  }
+
   const apps = (check(applications) ?? []).map(toApplication);
   const jobByApp = new Map(apps.map((a) => [a.id, a.jobId]));
   return {

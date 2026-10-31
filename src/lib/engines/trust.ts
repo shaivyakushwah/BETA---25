@@ -26,8 +26,23 @@ export function assessTrust(job: Job, all: Job[], now: Date = new Date()): Trust
   // 1. Duplicate / re-listed copy
   let duplicateOf: string | null = null;
   let duplicateSimilarity: number | null = null;
+  const jobTitleLower = job.title.toLowerCase();
+  const jobCompanyLower = job.company.toLowerCase();
+  const jobDescLen = job.description.length;
+
   for (const other of all) {
     if (other.id === job.id) continue;
+    // Fast pre-filter: duplicate listings almost always share company, title keywords, or similar length
+    const otherCompanyLower = other.company.toLowerCase();
+    const otherTitleLower = other.title.toLowerCase();
+    const otherDescLen = other.description.length;
+
+    const sameCompany = otherCompanyLower === jobCompanyLower;
+    const titleMatch = otherTitleLower === jobTitleLower || otherTitleLower.includes(jobTitleLower) || jobTitleLower.includes(otherTitleLower);
+    const lenRatio = Math.min(jobDescLen, otherDescLen) / Math.max(jobDescLen, otherDescLen || 1);
+
+    if (!sameCompany && !titleMatch && lenRatio < 0.6) continue;
+
     const sim = similarity(job.description, other.description);
     if (sim >= 0.7 && (duplicateSimilarity === null || sim > duplicateSimilarity)) {
       duplicateSimilarity = sim;

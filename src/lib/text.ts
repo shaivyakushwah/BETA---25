@@ -9,22 +9,38 @@ export function normalise(text: string): string {
     .trim();
 }
 
-function shingles(text: string, size = 5): Set<string> {
+const shingleCache = new Map<string, Set<string>>();
+
+export function getShingles(text: string, size = 5): Set<string> {
+  const cached = shingleCache.get(text);
+  if (cached) return cached;
   const words = normalise(text).split(" ").filter(Boolean);
   const out = new Set<string>();
   for (let i = 0; i + size <= words.length; i++) {
     out.add(words.slice(i, i + size).join(" "));
   }
+  if (shingleCache.size > 500) shingleCache.clear();
+  shingleCache.set(text, out);
   return out;
 }
 
 /** Jaccard similarity over 5-word shingles. 0 = unrelated, 1 = identical. */
 export function similarity(a: string, b: string): number {
-  const left = shingles(a);
-  const right = shingles(b);
+  if (a === b) return 1;
+  const left = getShingles(a);
+  const right = getShingles(b);
   if (left.size === 0 || right.size === 0) return 0;
+  
+  // Fast bound: if size ratio < 0.6, Jaccard similarity can never exceed 0.6
+  const minSize = Math.min(left.size, right.size);
+  const maxSize = Math.max(left.size, right.size);
+  if (minSize / maxSize < 0.6) return 0;
+
   let shared = 0;
-  for (const s of left) if (right.has(s)) shared++;
+  const [smaller, larger] = left.size < right.size ? [left, right] : [right, left];
+  for (const s of smaller) {
+    if (larger.has(s)) shared++;
+  }
   return shared / (left.size + right.size - shared);
 }
 
