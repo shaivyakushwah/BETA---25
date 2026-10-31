@@ -444,6 +444,8 @@ export const importLiveJobsFn = createServerFn({ method: "POST" }).middleware([r
     const formData = form(data);
     const query = String(formData.get("query") ?? "").trim();
     const limit = Number(formData.get("limit") ?? 5);
+    const workCompatibility = String(formData.get("workCompatibility") ?? "").trim();
+    const specificLocation = String(formData.get("location") ?? "").trim().toLowerCase();
     const requested = formData
       .getAll("sources")
       .map((value) => String(value))
@@ -463,6 +465,20 @@ export const importLiveJobsFn = createServerFn({ method: "POST" }).middleware([r
     for (const result of results) {
       let added = 0;
       for (const job of result.jobs) {
+        // Filter by work compatibility if requested
+        if (workCompatibility === "remote" && job.workMode !== "remote") continue;
+        if (workCompatibility === "hybrid" && job.workMode !== "hybrid") continue;
+        if (workCompatibility === "independent") {
+          const loc = (job.location || "").toLowerCase();
+          const isIndep = loc.includes("remote") || loc.includes("anywhere") || loc.includes("worldwide") || job.workMode === "remote";
+          if (!isIndep) continue;
+        }
+        if (workCompatibility === "specific" && specificLocation) {
+          const loc = (job.location || "").toLowerCase();
+          const desc = (job.description || "").toLowerCase();
+          if (!loc.includes(specificLocation) && !desc.includes(specificLocation)) continue;
+        }
+
         const key = titleCompanyKey(job);
         if (ids.has(job.id) || seen.has(key)) continue;
         await db.insertJob(repo, job);
