@@ -5,6 +5,7 @@ import { saveProfileAction } from "@/app/actions";
 import { skillLabel } from "@/lib/skills";
 import { PageHeader, SectionTitle } from "@/components/ui";
 import { ResumeUpload } from "@/components/resume-upload";
+import { ResumeScorer } from "@/components/resume-scorer";
 
 export default function Page() {
   return (
@@ -30,6 +31,10 @@ async function Profile() {
         title="A thin profile still gets answers"
         lede="You do not need a complete CV to start. Shortlist works with what is here, marks its own confidence, and shows which one addition would improve every suggestion at once."
       />
+
+      <div style={{ marginBottom: 24 }}>
+        <ResumeScorer initialTargetRole={candidate.targetRoles[0]} />
+      </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1.4fr) minmax(0,1fr)", gap: 26, alignItems: "start" }}>
         <form action={saveProfileAction} className="card card-pad" style={{ display: "grid", gap: 12 }}>

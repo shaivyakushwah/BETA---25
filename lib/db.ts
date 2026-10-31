@@ -110,6 +110,22 @@ function init(database: DatabaseSync) {
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS user_account (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT UNIQUE NOT NULL,
+      name TEXT NOT NULL,
+      password_hash TEXT NOT NULL,
+      role TEXT NOT NULL DEFAULT 'job_seeker',
+      created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS session (
+      id TEXT PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES user_account(id) ON DELETE CASCADE,
+      expires_at TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
   `);
 
   const seeded = database.prepare("SELECT value FROM meta WHERE key = 'seeded'").get() as

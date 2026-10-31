@@ -464,3 +464,111 @@ export async function importLiveJobsAction(_prev: ImportState, formData: FormDat
     results: summary,
   };
 }
+
+// ==============================================================
+// AUTH ACTIONS
+// ==============================================================
+
+import { signInUser, signUpUser, signOutUser } from "@/lib/auth";
+
+export async function signInAction(_prevState: unknown, formData: FormData) {
+  const email = String(formData.get("email") ?? "");
+  const password = String(formData.get("password") ?? "");
+
+  const result = await signInUser(email, password);
+  if (!result.ok) {
+    return { ok: false, error: result.error || "Failed to sign in" };
+  }
+
+  refresh();
+  redirect("/sprint");
+}
+
+export async function signUpAction(_prevState: unknown, formData: FormData) {
+  const name = String(formData.get("name") ?? "");
+  const email = String(formData.get("email") ?? "");
+  const password = String(formData.get("password") ?? "");
+
+  const result = await signUpUser(name, email, password);
+  if (!result.ok) {
+    return { ok: false, error: result.error || "Failed to create account" };
+  }
+
+  refresh();
+  redirect("/sprint");
+}
+
+export async function signOutAction() {
+  await signOutUser();
+  refresh();
+  redirect("/");
+}
+
+// ==============================================================
+// GEMINI RESUME SCORING ACTION
+// ==============================================================
+
+import { scoreResumeWithGemini, type ResumeScoreResult } from "@/lib/gemini";
+import { getResumeText } from "@/lib/db";
+
+export async function scoreResumeAction(targetRole?: string): Promise<ResumeScoreResult> {
+  const resumeText = getResumeText();
+  return await scoreResumeWithGemini(resumeText, targetRole);
+}
+
+// ==============================================================
+// GEMINI EMAIL DRAFTING ACTION
+// ==============================================================
+
+import { draftEmailWithGemini, type EmailDraftResult, type EmailDraftType } from "@/lib/gemini";
+
+export async function draftEmailAction(_prevState: unknown, formData: FormData): Promise<EmailDraftResult> {
+  const type = (formData.get("type") as EmailDraftType) || "application";
+  const jobTitle = String(formData.get("jobTitle") || "Software Engineer");
+  const company = String(formData.get("company") || "Hiring Team");
+  const candidateName = String(formData.get("candidateName") || "Candidate");
+  const recruiterName = String(formData.get("recruiterName") || "");
+  const notes = String(formData.get("notes") || "");
+  const resumeText = getResumeText();
+
+  return await draftEmailWithGemini({
+    type,
+    jobTitle,
+    company,
+    candidateName,
+    recruiterName,
+    resumeSnippet: resumeText,
+    notes,
+  });
+}
+
+// ==============================================================
+// RESEND LIVE EMAIL SENDING ACTION
+// ==============================================================
+
+import { sendEmailWithResend, type SendEmailResult } from "@/lib/resend";
+
+export async function sendResendEmailAction(_prevState: unknown, formData: FormData): Promise<SendEmailResult> {
+  const to = String(formData.get("to") || "").trim();
+  const subject = String(formData.get("subject") || "").trim();
+  const body = String(formData.get("body") || "").trim();
+  const replyTo = String(formData.get("replyTo") || "").trim();
+
+  if (!to || !to.includes("@")) {
+    return { ok: false, error: "Please enter a valid recipient email address." };
+  }
+  if (!subject) {
+    return { ok: false, error: "Subject line cannot be empty." };
+  }
+  if (!body) {
+    return { ok: false, error: "Email body cannot be empty." };
+  }
+
+  return await sendEmailWithResend({
+    to,
+    subject,
+    body,
+    replyTo: replyTo || undefined,
+  });
+}
+

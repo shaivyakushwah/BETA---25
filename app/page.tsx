@@ -168,13 +168,13 @@ export default function HomePage() {
         {/* Right: Auth & CTA Buttons */}
         <div className="flex items-center gap-2.5">
           <Link
-            href="/sprint"
+            href="/login"
             className="hidden sm:inline-flex items-center justify-center text-xs font-extrabold uppercase tracking-wider text-slate-800 bg-[#d8f3d4] hover:bg-[#c2ecc0] px-5 py-2.5 rounded-full transition-all"
           >
             SIGN IN
           </Link>
           <Link
-            href="/sprint"
+            href="/signup"
             className="inline-flex items-center justify-center text-xs font-extrabold uppercase tracking-wider text-white bg-slate-950 hover:bg-slate-800 px-6 py-2.5 rounded-full shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5"
           >
             JOIN NOW
@@ -306,7 +306,7 @@ export default function HomePage() {
 
             <div>
               <Link
-                href="/sprint"
+                href="/signup"
                 className="inline-flex items-center justify-center bg-slate-950 hover:bg-slate-800 text-white font-extrabold text-[17px] sm:text-[19px] px-10 py-4 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-0.5 tracking-wider uppercase"
               >
                 TRY FOR FREE

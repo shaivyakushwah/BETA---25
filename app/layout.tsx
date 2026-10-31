@@ -23,11 +23,18 @@ export const metadata: Metadata = {
     "A job tracker that checks listings, spends your limited application hours where they count, and never writes claims you did not make.",
 };
 
+import { getCurrentUser } from "@/lib/auth";
+import { signOutAction } from "@/app/actions";
+import { resendStatus } from "@/lib/resend";
+
 async function SidebarFooter() {
   await connection();
   const ws = getWorkspace();
+  const user = await getCurrentUser();
   const pending = listProposals().filter((p) => p.state === "pending").length;
   const provider = providerStatus();
+  const resend = resendStatus();
+  const displayName = user?.name || ws.candidate.name || "Job Seeker";
 
   return (
     <div style={{ marginTop: "auto" }}>
@@ -38,23 +45,45 @@ async function SidebarFooter() {
           </p>
         </div>
       ) : null}
-      <div className="card" style={{ padding: "14px", background: "#f8fafc", borderRadius: 10 }}>
+      <div className="card" style={{ padding: "14px", background: "#f8fafc", borderRadius: 12, border: "1px solid #e2e8f0" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 34, height: 34, borderRadius: "50%", background: "linear-gradient(135deg, #2563eb, #059669)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 13 }}>
-            {ws.candidate.name.charAt(0) || "U"}
+          <div style={{ width: 34, height: 34, borderRadius: "50%", background: "linear-gradient(135deg, #059669, #0284c7)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 13, flex: "none" }}>
+            {displayName.charAt(0).toUpperCase() || "U"}
           </div>
           <div style={{ minWidth: 0, flex: 1 }}>
-            <p style={{ margin: 0, fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ws.candidate.name}</p>
-            <p style={{ margin: 0, fontSize: 11, color: "var(--color-ink-faint)" }}>
-              {ws.candidate.hoursPerWeek}h/wk · {ws.market.sample} jobs
+            <p style={{ margin: 0, fontSize: 13, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#0f172a" }}>
+              {displayName}
+            </p>
+            <p style={{ margin: 0, fontSize: 11, color: "var(--color-ink-faint)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {user?.email || `${ws.candidate.hoursPerWeek}h/wk · ${ws.jobs.length} jobs`}
             </p>
           </div>
         </div>
-        <div style={{ marginTop: 10, paddingTop: 8, borderTop: "1px solid var(--color-line)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span className="mono-xs" style={{ color: provider.available ? "var(--color-accent)" : "var(--color-ink-soft)", fontWeight: 550 }} title={provider.note}>
-            ● {provider.available ? "Gemini Active" : "Local Engine"}
-          </span>
-          <span className="mono-xs" style={{ color: "var(--color-ink-faint)", fontSize: 10 }}>v1.0</span>
+
+        <div style={{ marginTop: 10, paddingTop: 8, borderTop: "1px solid var(--color-line)", display: "grid", gap: 4 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span className="mono-xs" style={{ color: provider.available ? "var(--color-accent)" : "var(--color-ink-faint)", fontWeight: 600 }} title={provider.note}>
+              ● {provider.available ? "Gemini Live" : "Local Engine"}
+            </span>
+            <span className="mono-xs" style={{ color: resend.available ? "var(--color-accent)" : "var(--color-ink-faint)", fontWeight: 600 }}>
+              ✉ {resend.available ? "Resend Ready" : "Mail Draft"}
+            </span>
+          </div>
+
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4 }}>
+            {user ? (
+              <form action={signOutAction}>
+                <button type="submit" className="mono-xs" style={{ background: "none", border: "none", padding: 0, color: "var(--color-ink-soft)", cursor: "pointer", textDecoration: "underline" }}>
+                  Sign out
+                </button>
+              </form>
+            ) : (
+              <a href="/login" className="mono-xs" style={{ color: "var(--color-brand)", fontWeight: 600, textDecoration: "none" }}>
+                Sign in →
+              </a>
+            )}
+            <span className="mono-xs" style={{ color: "var(--color-ink-faint)", fontSize: 10 }}>v2.0</span>
+          </div>
         </div>
       </div>
       <p className="mono-xs" style={{ color: "var(--color-ink-faint)", marginTop: 10, lineHeight: 1.5, textAlign: "center" }}>

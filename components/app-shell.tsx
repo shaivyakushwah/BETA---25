@@ -11,9 +11,9 @@ function ShellContent({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const isLanding = pathname === "/";
+  const isLandingOrAuth = pathname === "/" || pathname === "/login" || pathname === "/signup";
 
-  if (isLanding) {
+  if (isLandingOrAuth) {
     return <main id="main">{children}</main>;
   }
 

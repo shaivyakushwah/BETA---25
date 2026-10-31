@@ -9,6 +9,7 @@ import { skillAliases, skillLabel } from "@/lib/skills";
 import { geminiAvailable } from "@/lib/gemini";
 import { ApplicationWorkspace } from "@/components/application-workspace";
 import { TrustPill } from "@/components/ui";
+import { EmailDrafter } from "@/components/email-drafter";
 
 export default function Page({ params }: { params: Promise<{ id: string }> }) {
   return (
@@ -89,6 +90,15 @@ async function Apply({ params }: { params: Promise<{ id: string }> }) {
         unclaimed={unclaimed}
         gemini={geminiAvailable()}
       />
+
+      <div style={{ marginTop: 24 }}>
+        <EmailDrafter
+          jobTitle={job.title}
+          company={job.company}
+          candidateName={ws.candidate.name || "Candidate"}
+          defaultRecruiterEmail={job.contactEmail || undefined}
+        />
+      </div>
     </>
   );
 }
