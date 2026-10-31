@@ -176,69 +176,6 @@ function init(database: DatabaseSync) {
     );
   }
 
-  // Eight applications from the last month, so the honest-results page has a real
-  // (and still small) sample to reason about.
-  const history: { jobId: string; daysAgo: number; status: string; events: [string, number, string][] }[] = [
-    { jobId: "northwind-data-analyst", daysAgo: 24, status: "rejected", events: [["applied", 24, "Sent via company site"], ["rejected", 14, "Form rejection, no feedback"]] },
-    { jobId: "pixel-qa-junior", daysAgo: 20, status: "ghosted", events: [["applied", 20, "Sent via company site"]] },
-    { jobId: "solstice-marketing-analyst", daysAgo: 17, status: "rejected", events: [["applied", 17, "Sent via company site"], ["rejected", 8, "Rejected by email: 'more relevant experience'"]] },
-    { jobId: "clearwater-support-analyst", daysAgo: 15, status: "ghosted", events: [["applied", 15, "Sent via company site"]] },
-    { jobId: "brightshores-grad-analyst", daysAgo: 12, status: "interview", events: [["applied", 12, "Sent via company site"], ["screening", 7, "Recruiter call booked"], ["interview", 3, "First interview scheduled"]] },
-    { jobId: "quill-frontend", daysAgo: 9, status: "applied", events: [["applied", 9, "Sent via company site"]] },
-    { jobId: "meridian-data-analyst", daysAgo: 6, status: "applied", events: [["applied", 6, "Sent via company site"]] },
-    { jobId: "fern-frontend-intern", daysAgo: 4, status: "applied", events: [["applied", 4, "Sent via company site"]] },
-  ];
-
-  const insertApp = database.prepare(
-    `INSERT INTO application (job_id, status, highlights, draft, cover_letter, created_at, submitted_at, confirmed_at)
-     VALUES (?, ?, '[]', '', '', ?, ?, ?)`,
-  );
-  const insertEvent = database.prepare(
-    `INSERT INTO application_event (application_id, at, kind, note, source, confidence, confirmed)
-     VALUES (?, ?, ?, ?, 'candidate', 1, 1)`,
-  );
-
-  for (const row of history) {
-    const result = insertApp.run(row.jobId, row.status, iso(row.daysAgo), iso(row.daysAgo), iso(row.daysAgo));
-    const applicationId = Number(result.lastInsertRowid);
-    for (const [kind, daysAgo, note] of row.events) {
-      insertEvent.run(applicationId, iso(daysAgo), kind, note);
-    }
-  }
-
-  // One application deliberately left in the candidate's hands, so the demo can
-  // show the handoff gate rather than only the already-sent state.
-  const DRAFT = `Dear Willow Health hiring team,
-
-I am applying for the Junior Frontend Developer role. I am in my third year of Computer Science at Queen Mary, and I want to work on software that people depend on rather than something that only looks good in a demo.
-
-The closest thing I have done to your patient-facing work is a React app I built with four teammates that searches 300 recipes by ingredient. I wrote the search filter and the ingredient picker in TypeScript, set up the GitHub repository, and ran our weekly code review. I also rebuilt six pages of a charity's site and fixed the mobile layout, which taught me how quickly a small spacing bug turns into a support message.
-
-I have not worked on a health product before. What I can offer is that I check what I build, I ask when I am unsure, and I would rather ship one careful component than five rushed ones. I would like to learn how your team handles the parts of this that are hard: form states, error messages, and the details that make an appointment booking feel safe.
-
-Thank you for reading.
-
-Aisha Rahman`;
-
-  const draftResult = insertApp.run("willow-frontend-jr", "ready", iso(1), null, null);
-  const draftId = Number(draftResult.lastInsertRowid);
-  database.prepare("UPDATE application SET draft = ? WHERE id = ?").run(DRAFT, draftId);
-  insertEvent.run(draftId, iso(1), "drafting", "Started from the weekly plan; not sent");
-
-  database
-    .prepare(
-      `INSERT INTO update_proposal (raw, proposed_status, job_hint, confidence, evidence, state, created_at)
-       VALUES (?, ?, ?, ?, ?, 'pending', ?)`,
-    )
-    .run(
-      "Subject: Next steps — Meridian Logistics application\n\nHi Aisha, thanks for applying for the Data Analyst role. We would like to invite you to a 30-minute call with the hiring manager next week. Please reply with your availability.",
-      "interview",
-      "meridian-data-analyst",
-      0.93,
-      "Contains 'invite you to a call' and names the role and employer.",
-      iso(1),
-    );
-
   database.prepare("INSERT INTO meta (key, value) VALUES ('seeded', ?)").run(new Date().toISOString());
 }
 

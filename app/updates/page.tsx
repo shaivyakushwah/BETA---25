@@ -72,10 +72,9 @@ async function Updates() {
             </SectionTitle>
 
             {pending.length === 0 ? (
-              <div className="card card-pad">
-                <p style={{ margin: 0, fontSize: 13 }}>
-                  No proposals. The seed includes one example so you can see how an unclear message is handled — accept or
-                  dismiss it and this list empties.
+              <div className="card card-pad" style={{ borderRadius: 16 }}>
+                <p style={{ margin: 0, fontSize: 13, color: "#475569" }}>
+                  No pending update proposals. When a recruiter emails you or updates an application status, paste the message above. The AI will parse the decision and ask for your confirmation before touching your tracker.
                 </p>
               </div>
             ) : (

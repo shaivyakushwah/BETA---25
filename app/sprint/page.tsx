@@ -76,35 +76,29 @@ async function Week() {
           ) : (
             <ol style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 12 }}>
               {plan.applyNow.map((insight, index) => (
-                <li key={insight.job.id} className="card" style={{ padding: "18px 18px 15px" }}>
+                <li key={insight.job.id} className="card" style={{ padding: "20px 22px", borderRadius: 16 }}>
                   <div style={{ display: "flex", gap: 14 }}>
-                    <span
-                      className="num"
-                      style={{
-                        fontSize: 12,
-                        color: "var(--color-ink-faint)",
-                        borderRight: "1px solid var(--color-line-soft)",
-                        paddingRight: 12,
-                      }}
-                    >
+                    <span className="priority-badge">
                       {String(index + 1).padStart(2, "0")}
                     </span>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
                         <div>
                           <Link href={`/jobs/${insight.job.id}`} style={{ textDecoration: "none" }}>
-                            <p style={{ margin: 0, fontSize: 17, fontWeight: 550, letterSpacing: "-0.012em" }}>
+                            <p style={{ margin: 0, fontSize: 17, fontWeight: 700, letterSpacing: "-0.015em", color: "#0f172a" }}>
                               {insight.job.title}
                             </p>
                           </Link>
-                          <JobMeta job={insight.job} />
+                          <div style={{ marginTop: 2 }}>
+                            <JobMeta job={insight.job} />
+                          </div>
                         </div>
                         <FitScore fit={insight.fit} />
                       </div>
 
-                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 10 }}>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 12, alignItems: "center" }}>
                         <TrustPill trust={insight.trust} size="sm" />
-                        <span className="pill pill-neutral">{insight.minutes} min</span>
+                        <span className="pill pill-neutral">⏱️ {insight.minutes} min</span>
                         {insight.job.expiresAt ? (
                           <span className="pill pill-neutral">
                             closes {new Date(insight.job.expiresAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
@@ -113,18 +107,18 @@ async function Week() {
                         {insight.fit.stretch ? <span className="pill pill-check">stretch</span> : null}
                       </div>
 
-                      <p style={{ margin: "10px 0 0", fontSize: 13 }}>
+                      <p style={{ margin: "12px 0 0", fontSize: 13, color: "#475569", lineHeight: 1.55 }}>
                         {insight.fit.summary}{" "}
                         {insight.trust.verdict === "clear"
                           ? "The listing checks out."
                           : `${insight.trust.flags.length} thing(s) to check before you invest time.`}
                       </p>
 
-                      <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap", alignItems: "center" }}>
+                      <div style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap", alignItems: "center" }}>
                         <form action={startApplicationAction}>
                           <input type="hidden" name="jobId" value={insight.job.id} />
-                          <button className="btn btn-accent" type="submit">
-                            {applied.has(insight.job.id) ? "Open application" : "Start application"}
+                          <button className="btn btn-primary" type="submit">
+                            {applied.has(insight.job.id) ? "Open application ↗" : "Start application ⚡"}
                           </button>
                         </form>
                         <Link href={`/jobs/${insight.job.id}`} className="btn">

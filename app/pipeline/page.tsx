@@ -45,25 +45,71 @@ async function Pipeline() {
         lede="One record per application, built from what you confirmed. Late updates arrive through the Updates page, where an unclear message stays a proposal until you accept it."
       />
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0,1fr))", gap: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0,1fr))", gap: 14 }}>
         {COLUMNS.map((column) => {
           const items = applications.filter((a) => column.statuses.includes(a.status));
+          const colThemes: Record<string, { bg: string; border: string; text: string; badgeBg: string }> = {
+            drafting: { bg: "#eff6ff", border: "#bfdbfe", text: "#1d4ed8", badgeBg: "#dbeafe" },
+            applied: { bg: "#fffbeb", border: "#fde68a", text: "#b45309", badgeBg: "#fef3c7" },
+            active: { bg: "#ecfdf5", border: "#a7f3d0", text: "#047857", badgeBg: "#d1fae5" },
+            closed: { bg: "#f8fafc", border: "#e2e8f0", text: "#64748b", badgeBg: "#e2e8f0" },
+          };
+          const theme = colThemes[column.key];
+
           return (
             <section key={column.key} style={{ minWidth: 0 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
-                <p className="eyebrow" style={{ margin: 0 }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "10px 14px",
+                  borderRadius: "12px 12px 0 0",
+                  background: theme.bg,
+                  border: `1px solid ${theme.border}`,
+                  borderBottom: 0,
+                  marginBottom: 0,
+                }}
+              >
+                <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: theme.text, textTransform: "uppercase", letterSpacing: "0.04em" }}>
                   {column.label}
                 </p>
-                <span className="num" style={{ fontSize: 11, color: "var(--color-ink-faint)" }}>
+                <span
+                  style={{
+                    fontSize: 11.5,
+                    fontWeight: 800,
+                    color: theme.text,
+                    background: theme.badgeBg,
+                    padding: "2px 8px",
+                    borderRadius: 999,
+                    fontFamily: "var(--font-mono)",
+                  }}
+                >
                   {items.length}
                 </span>
               </div>
 
-              <div style={{ display: "grid", gap: 9 }}>
+              <div
+                style={{
+                  background: "#f8fafc",
+                  border: `1px solid ${theme.border}`,
+                  borderRadius: "0 0 12px 12px",
+                  padding: 10,
+                  display: "grid",
+                  gap: 10,
+                  minHeight: 180,
+                  alignContent: "start",
+                }}
+              >
                 {items.length === 0 ? (
-                  <p className="mono-xs" style={{ color: "var(--color-ink-faint)", padding: "8px 0" }}>
-                    empty
-                  </p>
+                  <div style={{ textAlign: "center", padding: "30px 10px", color: "var(--color-ink-faint)" }}>
+                    <p style={{ margin: 0, fontSize: 12 }}>No applications here</p>
+                    {column.key === "drafting" ? (
+                      <Link href="/jobs" className="btn btn-sm btn-primary" style={{ marginTop: 10 }}>
+                        Find Jobs
+                      </Link>
+                    ) : null}
+                  </div>
                 ) : null}
 
                 {items.map((application) => {

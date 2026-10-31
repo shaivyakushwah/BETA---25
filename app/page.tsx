@@ -125,23 +125,19 @@ export default function HomePage() {
         {/* Center: Rounded Pill Navigation Container */}
         <nav
           aria-label="Main Navigation"
-          className="hidden md:flex items-center bg-white/80 backdrop-blur-md border border-slate-900/10 rounded-full p-1 shadow-sm"
+          className="hidden md:flex items-center bg-white/90 backdrop-blur-md border border-slate-900/10 rounded-full px-3 py-1.5 shadow-sm gap-1"
         >
-          {/* Pill Switch */}
-          <div className="flex items-center bg-slate-950 rounded-full p-0.5">
-            <span className="bg-white text-slate-950 text-xs font-bold px-3.5 py-1.5 rounded-full shadow-sm cursor-pointer">
-              Job seekers
-            </span>
-            <span className="text-white/80 hover:text-white text-xs font-semibold px-3.5 py-1.5 rounded-full cursor-pointer transition-colors">
-              Employers
-            </span>
+          {/* Dedicated Job Seekers Badge */}
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-800 text-xs font-bold border border-emerald-500/20 mr-1 select-none">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Job Seekers</span>
           </div>
 
           {/* Links */}
-          <div className="flex items-center gap-1 pl-3 pr-2 text-xs font-semibold text-slate-700">
+          <div className="flex items-center gap-1 text-xs font-semibold text-slate-700">
             <Link
               href="/jobs"
-              className="px-3 py-1.5 rounded-full hover:text-slate-950 hover:bg-black/5 transition-colors flex items-center gap-1"
+              className="px-3.5 py-1.5 rounded-full hover:text-slate-950 hover:bg-black/5 transition-colors flex items-center gap-1"
             >
               Features
               <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="opacity-70">
@@ -150,15 +146,21 @@ export default function HomePage() {
             </Link>
             <Link
               href="/sprint"
-              className="px-3 py-1.5 rounded-full hover:text-slate-950 hover:bg-black/5 transition-colors"
+              className="px-3.5 py-1.5 rounded-full hover:text-slate-950 hover:bg-black/5 transition-colors"
             >
               AI Agent
             </Link>
             <Link
               href="/profile"
-              className="px-3 py-1.5 rounded-full hover:text-slate-950 hover:bg-black/5 transition-colors"
+              className="px-3.5 py-1.5 rounded-full hover:text-slate-950 hover:bg-black/5 transition-colors"
             >
               Resume AI
+            </Link>
+            <Link
+              href="/pipeline"
+              className="px-3.5 py-1.5 rounded-full hover:text-slate-950 hover:bg-black/5 transition-colors"
+            >
+              Tracker
             </Link>
           </div>
         </nav>

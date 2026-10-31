@@ -71,9 +71,10 @@ export function PageHeader({
 }) {
   return (
     <header style={{ marginBottom: 28 }}>
-      <p className="eyebrow" style={{ margin: 0 }}>
-        {eyebrow}
-      </p>
+      <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "3px 11px", borderRadius: 999, background: "#ecfdf5", border: "1px solid #a7f3d0", color: "#065f46", fontSize: 11, fontWeight: 700, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>
+        <span>⚡</span>
+        <span>{eyebrow}</span>
+      </div>
       <div
         style={{
           display: "flex",
@@ -81,16 +82,16 @@ export function PageHeader({
           alignItems: "flex-end",
           justifyContent: "space-between",
           flexWrap: "wrap",
-          marginTop: 6,
+          marginTop: 2,
         }}
       >
-        <h1 className="display" style={{ margin: 0, maxWidth: "20ch" }}>
+        <h1 className="display" style={{ margin: 0, maxWidth: "22ch", fontSize: "clamp(26px, 3vw, 34px)", fontWeight: 800 }}>
           {title}
         </h1>
-        {actions ? <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>{actions}</div> : null}
+        {actions ? <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>{actions}</div> : null}
       </div>
       {lede ? (
-        <p className="lede" style={{ margin: "12px 0 0" }}>
+        <p className="lede" style={{ margin: "10px 0 0", color: "#475569", fontSize: 14.5 }}>
           {lede}
         </p>
       ) : null}
@@ -159,37 +160,39 @@ export function JobCard({ insight, href }: { insight: JobInsight; href?: string 
       className="card"
       style={{
         display: "block",
-        padding: "18px 20px",
+        padding: "20px 22px",
         textDecoration: "none",
         opacity: closed ? 0.72 : 1,
-        borderRadius: 12,
+        borderRadius: 16,
+        background: "#ffffff",
+        border: "1px solid #e2e8f0",
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", gap: 14, alignItems: "flex-start" }}>
         <div style={{ display: "flex", gap: 12, alignItems: "flex-start", minWidth: 0 }}>
           <div
             style={{
-              width: 42,
-              height: 42,
-              borderRadius: 10,
-              background: "#f1f5f9",
-              border: "1px solid var(--color-line)",
+              width: 44,
+              height: 44,
+              borderRadius: 12,
+              background: "linear-gradient(135deg, #059669 0%, #00d084 100%)",
+              color: "white",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontWeight: 700,
-              fontSize: 16,
-              color: "var(--color-brand)",
+              fontWeight: 800,
+              fontSize: 17,
               flex: "none",
+              boxShadow: "0 2px 4px rgba(5, 150, 105, 0.2)",
             }}
           >
             {initial}
           </div>
           <div style={{ minWidth: 0 }}>
-            <p style={{ margin: 0, fontSize: 16, fontWeight: 650, letterSpacing: "-0.015em", color: "var(--color-ink)" }}>
+            <p style={{ margin: 0, fontSize: 16.5, fontWeight: 700, letterSpacing: "-0.015em", color: "#0f172a" }}>
               {job.title}
             </p>
-            <div style={{ marginTop: 2 }}>
+            <div style={{ marginTop: 3 }}>
               <JobMeta job={job} />
             </div>
           </div>
@@ -198,9 +201,9 @@ export function JobCard({ insight, href }: { insight: JobInsight; href?: string 
           <FitScore fit={fit} compact />
         </div>
       </div>
-      <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginTop: 12, alignItems: "center" }}>
+      <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginTop: 14, alignItems: "center" }}>
         <TrustPill trust={trust} size="sm" />
-        <span className="pill pill-neutral">⏱️ {insight.minutes} min</span>
+        <span className="pill pill-neutral">⏱️ {insight.minutes} min to apply</span>
         {insight.decision === "skip" ? <span className="pill pill-neutral">Skipped</span> : null}
         {serious > 0 && trust.verdict !== "clear" ? (
           <span className="mono-xs" style={{ color: "var(--color-danger)", fontWeight: 600 }}>
@@ -209,7 +212,7 @@ export function JobCard({ insight, href }: { insight: JobInsight; href?: string 
         ) : null}
         {closed ? <span className="pill pill-doubt">Closed</span> : null}
       </div>
-      <p style={{ margin: "10px 0 0", fontSize: 13, color: "var(--color-ink-soft)", lineHeight: 1.5 }}>
+      <p style={{ margin: "12px 0 0", fontSize: 13, color: "#475569", lineHeight: 1.55 }}>
         {fit.summary}
       </p>
     </Link>

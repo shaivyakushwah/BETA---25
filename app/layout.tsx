@@ -91,20 +91,37 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <>
               <div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <p className="wordmark" style={{ margin: 0 }}>
-                    <span style={{ color: "var(--color-brand)" }}>⚡</span> Shortlist
-                  </p>
+                  <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+                    <svg
+                      width="30"
+                      height="30"
+                      viewBox="0 0 100 100"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M18 64C18 42 36 24 58 24C68 24 76 28 82 34L88 28C79 19 69 16 58 16C31 16 10 37 10 64C10 77 16 88 26 95L32 87C23 82 18 73 18 64Z"
+                        fill="#00D084"
+                      />
+                      <path d="M82 34L44 72L30 58L22 66L44 88L90 42L82 34Z" fill="#00D084" />
+                      <path d="M44 72L58 86L94 50L86 42L44 72Z" fill="#059669" />
+                      <circle cx="68" cy="38" r="4" fill="#003B26" />
+                    </svg>
+                    <p className="wordmark" style={{ margin: 0, fontSize: 19 }}>
+                      Shortlist
+                    </p>
+                  </div>
                   <span className="wordmark-badge">AI COPILOT</span>
                 </div>
                 <p
                   style={{
-                    margin: "6px 0 16px",
-                    fontSize: 12,
+                    margin: "8px 0 16px",
+                    fontSize: 11.5,
                     color: "var(--color-ink-faint)",
                     lineHeight: 1.4,
                   }}
                 >
-                  Autonomous Career Agent & Application Engine
+                  Autonomous Career Agent · For Job Seekers
                 </p>
               </div>
               <Suspense fallback={<NavSkeleton />}>
