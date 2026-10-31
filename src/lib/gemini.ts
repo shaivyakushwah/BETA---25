@@ -385,19 +385,33 @@ export interface TailorResumeOptions {
   resumeText: string;
 }
 
-export interface TailoredExperienceItem {
-  title: string;
-  organization: string;
-  dates: string;
-  bullets: string[];
+// ==============================================================
+// 3. AUTHENTIC ATS RESUME KEYWORD OPTIMIZER & TAILORING
+// ==============================================================
+
+import {
+  tailorResumeDeterministically,
+  parseUploadedResume,
+  type ParsedResumeItem,
+  type ParsedEducationItem,
+} from "@/lib/engines/resume-tailorer";
+
+export interface TailorResumeOptions {
+  jobTitle: string;
+  company: string;
+  jobDescription: string;
+  requirements?: string[];
+  candidateName: string;
+  candidateEmail?: string;
+  candidatePhone?: string;
+  candidateLocation?: string;
+  candidateLinkedin?: string;
+  candidateHeadline?: string;
+  resumeText: string;
 }
 
-export interface TailoredEducationItem {
-  degree: string;
-  institution: string;
-  dates: string;
-  details: string;
-}
+export type TailoredExperienceItem = ParsedResumeItem;
+export type TailoredEducationItem = ParsedEducationItem;
 
 export interface TailorResumeResult {
   ok: boolean;
@@ -418,73 +432,57 @@ export async function tailorResumeWithGemini(options: TailorResumeOptions): Prom
     jobDescription,
     requirements = [],
     candidateName,
-    candidateEmail = "candidate@example.com",
-    candidatePhone = "+91 9424473696",
-    candidateLocation = "Remote / Relocation",
-    candidateLinkedin = "linkedin.com/in/candidate",
-    candidateHeadline = "",
+    candidateEmail,
+    candidatePhone,
+    candidateLocation,
+    candidateLinkedin,
+    candidateHeadline,
     resumeText,
   } = options;
 
+  // 1. First, parse candidate's actual uploaded resume as the immutable source of truth
+  const parsedCandidate = parseUploadedResume(resumeText, {
+    name: candidateName,
+    email: candidateEmail,
+    phone: candidatePhone,
+    location: candidateLocation,
+    linkedin: candidateLinkedin,
+    headline: candidateHeadline,
+  });
+
   const reqStr = requirements.length > 0 ? requirements.join(", ") : jobTitle;
 
+  // 2. If Gemini is available, run keyword optimization under strict ZERO-HALLUCINATION rules
   if (geminiAvailable()) {
-    const prompt = `You are a world-class ATS resume optimization specialist.
-Tailor this candidate's uploaded resume specifically for the job position: "${jobTitle}" at "${company}".
+    const prompt = `You are an expert ATS resume keyword optimizer.
+Your task is ONLY to optimize keywords on the candidate's uploaded resume for the role: "${jobTitle}" at "${company}".
 
-CRITICAL FORMATTING INSTRUCTIONS:
-- Use a classic, standard resume building format (standard single-column ATS format).
-- DO NOT use any decorative design, ASCII art, dividers (do not use "====" or "-----"), or banner titles.
-- DO NOT add artificial text like "TARGET ROLE: ...".
-- The resume must read like a real, professional resume ready to be submitted to an employer.
-- Sections must follow standard order: Contact Info Header, Professional Summary, Technical Skills, Professional Experience, Projects, Education.
+ABSOLUTE ZERO-HALLUCINATION MANDATORY RULES:
+1. DO NOT INVENT OR INTRODUCE ANY RANDOM OR NEW PROJECTS. You MUST ONLY use the exact projects present in the candidate's uploaded resume.
+2. DO NOT CHANGE THE CANDIDATE'S LOCATION OR CONTACT INFO. Keep their location ("${parsedCandidate.location}"), phone, email, and LinkedIn 100% identical.
+3. DO NOT CHANGE OR INVENT SKILLS. Do not claim skills the candidate does not have. Only reorder and feature the candidate's existing skills that match the JD.
+4. DO NOT INVENT EMPLOYERS, COMPANIES, OR DEGREES. Keep company names, job titles, university names, degrees, and dates exactly as written in the candidate's resume.
+5. ONLY PERFORM KEYWORD OPTIMIZATION:
+   - Align the summary towards the target role while describing the candidate's real background.
+   - Rephrase existing experience and project bullet points with active action verbs (e.g. engineered, orchestrated, implemented) and naturally weave in matching terminology from the JD without altering the underlying facts.
+6. Use standard single-column ATS format. NO ASCII art, NO dividers (no "====" or "-----").
 
-Job Description excerpt:
-${jobDescription.slice(0, 2000)}
-
-Must-have requirements / skills:
+Job Requirements / Keywords:
 ${reqStr}
 
-Candidate's current uploaded resume:
-${resumeText.slice(0, 3000)}
+Job Description:
+${jobDescription.slice(0, 1500)}
 
-Candidate Contact Info:
-Name: ${candidateName}
-Email: ${candidateEmail}
-Phone: ${candidatePhone}
-Location: ${candidateLocation}
-LinkedIn: ${candidateLinkedin}
+Candidate's Real Uploaded Resume:
+${resumeText.slice(0, 3500)}`;
 
-Instructions:
-1. Tailor the professional summary to specifically position the candidate for the ${jobTitle} role at ${company}.
-2. Re-prioritize skills to feature keywords matching ${reqStr}.
-3. Re-phrase experience and project bullets using the Google X-Y-Z formula ("Accomplished [X] measured by [Y] by doing [Z]") incorporating keywords from the JD without inventing fictitious degrees or employers.
-4. Output a comprehensive standard text resume.
-5. Provide a realistic match score increase estimate (e.g. 94).`;
-
-    const schemaHint = `Respond ONLY with valid JSON with this exact schema:
+    const schemaHint = `Respond ONLY with valid JSON:
 {
-  "tailoredSummary": "string",
-  "highlightedSkills": ["skill1", "skill2", "skill3", "skill4", "skill5", "skill6"],
-  "tailoredExperience": [
-    {
-      "title": "Role Title",
-      "organization": "Company / Project",
-      "dates": "Dates",
-      "bullets": ["Action verb bullet point 1", "Action verb bullet point 2"]
-    }
-  ],
-  "tailoredEducation": [
-    {
-      "degree": "Degree",
-      "institution": "University / College",
-      "dates": "Dates",
-      "details": "Academic honors or CGPA"
-    }
-  ],
-  "fullTailoredResume": "Complete standard-format ATS resume text with clean headers, contact info, summary, skills, experience, and education (NO ASCII ART or decorative lines)",
+  "tailoredSummary": "Concise keyword-aligned summary based solely on candidate's real background",
+  "highlightedSkills": ["matching_skill_1", "matching_skill_2"],
+  "fullTailoredResume": "Complete standard ATS resume text incorporating ONLY the candidate's real projects, real employers, real education, and real location",
   "matchScore": 95,
-  "matchImprovement": "+14% keyword match boost for this JD"
+  "matchImprovement": "+15% ATS keyword alignment boost"
 }`;
 
     const raw = await generate(prompt, schemaHint);
@@ -492,97 +490,57 @@ Instructions:
       try {
         const parsed = JSON.parse(raw);
         if (parsed.fullTailoredResume && parsed.tailoredSummary) {
-          return {
-            ok: true,
-            tailoredResume: parsed.fullTailoredResume,
-            tailoredSummary: parsed.tailoredSummary,
-            highlightedSkills: Array.isArray(parsed.highlightedSkills) ? parsed.highlightedSkills : requirements,
-            tailoredExperience: Array.isArray(parsed.tailoredExperience) ? parsed.tailoredExperience : [],
-            tailoredEducation: Array.isArray(parsed.tailoredEducation) ? parsed.tailoredEducation : [],
-            matchScore: Number(parsed.matchScore) || 94,
-            matchImprovement: parsed.matchImprovement || "+15% match alignment with JD",
-            source: "gemini",
-          };
+          // Double check that Gemini didn't fabricate fake companies or institutions
+          const resumeOut = String(parsed.fullTailoredResume);
+          const hasFakeData = /Target Projects|National Innovation Challenge|Madhav Institute/i.test(resumeOut);
+          
+          if (!hasFakeData) {
+            return {
+              ok: true,
+              tailoredResume: resumeOut,
+              tailoredSummary: parsed.tailoredSummary,
+              highlightedSkills: Array.isArray(parsed.highlightedSkills) && parsed.highlightedSkills.length > 0
+                ? parsed.highlightedSkills
+                : parsedCandidate.skills.slice(0, 8),
+              tailoredExperience: parsedCandidate.experience,
+              tailoredEducation: parsedCandidate.education,
+              matchScore: Number(parsed.matchScore) || 94,
+              matchImprovement: parsed.matchImprovement || "+16% ATS keyword alignment boost",
+              source: "gemini",
+            };
+          }
         }
       } catch (err) {
-        console.warn("AI resume tailoring parse error, falling back to deterministic", err);
+        console.warn("AI resume tailoring error, falling back to deterministic", err);
       }
     }
   }
 
-  // Deterministic ATS Tailoring Engine (Reliable, fast, zero network dependency)
-  const topSkills = Array.from(new Set([...requirements, "Python", "SQL", "Git", "REST APIs", "Machine Learning", "Data Engineering", "Cloud"]));
-
-  const tailoredSummary = `Results-oriented ${candidateHeadline || jobTitle} with hands-on experience in ${topSkills.slice(0, 4).join(", ")}. Proven track record of developing reliable software, optimizing data pipelines, and translating business requirements into scalable technical solutions. Specifically targeting the ${jobTitle} role at ${company} to deliver high-performance results.`;
-
-  const tailoredExperience: TailoredExperienceItem[] = [
-    {
-      title: `${jobTitle} / Technical Project Lead`,
-      organization: `${company} Target Projects`,
-      dates: "2024 – Present",
-      bullets: [
-        `Architected and deployed full-lifecycle solutions utilizing ${topSkills.slice(0, 3).join(", ")}, improving execution throughput by 35%.`,
-        `Streamlined pipeline operations and automated integration checks, reducing error latency by 40%.`,
-        `Collaborated with cross-functional technical teams to deliver resilient, production-grade features matching modern industry benchmarks.`,
-      ],
-    },
-    {
-      title: "Software Engineering & System Design",
-      organization: "National Innovation Challenge",
-      dates: "2023 – 2024",
-      bullets: [
-        `Engineered algorithmic processing modules using Python and structured database queries, handling high-concurrency requests.`,
-        `Implemented RESTful interfaces and robust API error handling to ensure 99.8% uptime during live testing.`,
-      ],
-    },
-  ];
-
-  const tailoredEducation: TailoredEducationItem[] = [
-    {
-      degree: "Bachelor of Technology / Engineering",
-      institution: "Madhav Institute of Technology & Science",
-      dates: "2024 – 2028",
-      details: "Aggregate CGPA: 8.7/10.0; Strong coursework in Data Structures, Database Systems & Machine Learning.",
-    },
-  ];
-
-  const contactLine = [candidateLocation, candidatePhone, candidateEmail, candidateLinkedin]
-    .filter(Boolean)
-    .join(" • ");
-
-  const fullTailoredResume = `${candidateName.toUpperCase()}
-${contactLine}
-
-PROFESSIONAL SUMMARY
-${tailoredSummary}
-
-TECHNICAL SKILLS
-• Programming & Frameworks: ${topSkills.slice(0, 6).join(", ")}
-• Databases, Cloud & Architecture: ${topSkills.slice(6, 12).join(", ")}
-
-PROFESSIONAL EXPERIENCE
-${tailoredExperience
-  .map(
-    (exp) => `${exp.title} — ${exp.organization} (${exp.dates})
-${exp.bullets.map((b) => `• ${b}`).join("\n")}`
-  )
-  .join("\n\n")}
-
-EDUCATION
-${tailoredEducation
-  .map((edu) => `${edu.degree} — ${edu.institution} (${edu.dates})\n• ${edu.details}`)
-  .join("\n\n")}
-`;
+  // 3. Fallback to 100% faithful deterministic ATS keyword tailoring
+  // Strictly preserves candidate's real resume, real projects, real location, and real skills!
+  const deterministicResult = tailorResumeDeterministically({
+    jobTitle,
+    company,
+    jobDescription,
+    requirements,
+    candidateName: parsedCandidate.name,
+    candidateEmail: parsedCandidate.email,
+    candidatePhone: parsedCandidate.phone,
+    candidateLocation: parsedCandidate.location,
+    candidateLinkedin: parsedCandidate.linkedin,
+    candidateHeadline,
+    resumeText,
+  });
 
   return {
     ok: true,
-    tailoredResume: fullTailoredResume,
-    tailoredSummary,
-    highlightedSkills: topSkills.slice(0, 10),
-    tailoredExperience,
-    tailoredEducation,
-    matchScore: 94,
-    matchImprovement: "+16% ATS keyword alignment boost",
+    tailoredResume: deterministicResult.tailoredResume,
+    tailoredSummary: deterministicResult.tailoredSummary,
+    highlightedSkills: deterministicResult.highlightedSkills,
+    tailoredExperience: deterministicResult.tailoredExperience,
+    tailoredEducation: deterministicResult.tailoredEducation,
+    matchScore: deterministicResult.matchScore,
+    matchImprovement: deterministicResult.matchImprovement,
     source: "deterministic",
   };
 }

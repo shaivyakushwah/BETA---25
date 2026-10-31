@@ -40,7 +40,7 @@ function formatResumeToStandardHtml(text: string, fallbackName: string): string 
   let inBullets = false;
 
   const sectionRegex =
-    /^(PROFESSIONAL SUMMARY|SUMMARY|TECHNICAL SKILLS|SKILLS|CORE COMPETENCIES|WORK EXPERIENCE|PROFESSIONAL EXPERIENCE|EXPERIENCE|PROJECTS|KEY PROJECTS|EDUCATION|CERTIFICATIONS)$/i;
+    /^(PROFESSIONAL SUMMARY|SUMMARY|TECHNICAL SKILLS|SKILLS|CORE COMPETENCIES|WORK EXPERIENCE|PROFESSIONAL EXPERIENCE|EXPERIENCE|PROJECTS|KEY TECHNICAL PROJECTS|KEY PROJECTS|EDUCATION|CERTIFICATIONS)$/i;
 
   let seenName = false;
   let seenContact = false;
@@ -114,9 +114,9 @@ export function ResumeTailorer({ job, candidate, resumeText, initialMatchScore =
   const [editedResume, setEditedResume] = useState("");
   const [activeTab, setActiveTab] = useState<"preview" | "raw">("preview");
 
-  const displayName = candidate.name || "Candidate";
-  const displayEmail = candidate.email || "candidate@example.com";
-  const displayLocation = candidate.location || "Remote / Relocation";
+  const displayName = candidate.name || "";
+  const displayEmail = candidate.email || "";
+  const displayLocation = candidate.location || "";
 
   async function handleTailor() {
     setLoading(true);
