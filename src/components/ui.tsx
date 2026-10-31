@@ -200,17 +200,12 @@ export function JobCard({ insight, href }: { insight: JobInsight; href?: string 
           <FitScore fit={fit} compact />
         </div>
       </div>
-      <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginTop: 14, alignItems: "center" }}>
-        <TrustPill trust={trust} size="sm" />
-        <span className="pill pill-neutral">⏱️ {insight.minutes} min to apply</span>
-        {insight.decision === "skip" ? <span className="pill pill-neutral">Skipped</span> : null}
-        {serious > 0 && trust.verdict !== "clear" ? (
-          <span className="mono-xs" style={{ color: "var(--color-danger)", fontWeight: 600 }}>
-            {serious} warning{serious === 1 ? "" : "s"}
-          </span>
-        ) : null}
-        {closed ? <span className="pill pill-doubt">Closed</span> : null}
-      </div>
+      {(insight.decision === "skip" || closed) ? (
+        <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginTop: 14, alignItems: "center" }}>
+          {insight.decision === "skip" ? <span className="pill pill-neutral">Skipped</span> : null}
+          {closed ? <span className="pill pill-doubt">Closed</span> : null}
+        </div>
+      ) : null}
       <p style={{ margin: "12px 0 0", fontSize: 13, color: "#475569", lineHeight: 1.55 }}>
         {fit.summary}
       </p>

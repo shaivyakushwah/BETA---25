@@ -60,7 +60,7 @@ function Week() {
           <SectionTitle
             right={
               <span className="mono-xs" style={{ color: "var(--color-ink-faint)" }}>
-                {plan.minutesUsed} of {plan.budgetMinutes} min planned
+                {plan.applyNow.length} prioritized
               </span>
             }
           >
@@ -112,8 +112,6 @@ function Week() {
                       </div>
 
                       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 12, alignItems: "center" }}>
-                        <TrustPill trust={insight.trust} size="sm" />
-                        <span className="pill pill-neutral">⏱️ {insight.minutes} min</span>
                         {insight.job.expiresAt ? (
                           <span className="pill pill-neutral">
                             closes {new Date(insight.job.expiresAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
@@ -123,10 +121,7 @@ function Week() {
                       </div>
 
                       <p style={{ margin: "12px 0 0", fontSize: 13, color: "#475569", lineHeight: 1.55 }}>
-                        {insight.fit.summary}{" "}
-                        {insight.trust.verdict === "clear"
-                          ? "The listing checks out."
-                          : `${insight.trust.flags.length} thing(s) to check before you invest time.`}
+                        {insight.fit.summary}
                       </p>
 
                       <div style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap", alignItems: "center" }}>
@@ -169,9 +164,6 @@ function Week() {
                     </div>
                     <div style={{ textAlign: "right" }}>
                       <FitScore fit={insight.fit} compact />
-                      <p className="mono-xs" style={{ margin: 0, color: "var(--color-ink-faint)" }}>
-                        +{insight.minutes} min
-                      </p>
                     </div>
                   </li>
                 ))}
@@ -277,34 +269,12 @@ function Week() {
             </Link>
           </div>
 
-          <div className="card card-pad">
-            <p className="eyebrow" style={{ margin: 0 }}>
-              Trust check
+          <div className="card card-pad" style={{ background: "#f8fafc", borderRadius: 16 }}>
+            <p className="eyebrow" style={{ margin: "0 0 8px", color: "var(--color-accent)" }}>
+              Weekly Strategy
             </p>
-            <ul style={{ listStyle: "none", padding: 0, margin: "8px 0 0", fontSize: 12.5 }}>
-              {[
-                ["Clear", ws.insights.filter((i) => i.trust.verdict === "clear").length],
-                ["Needs a check", ws.insights.filter((i) => i.trust.verdict === "check").length],
-                ["Serious warnings", ws.insights.filter((i) => i.trust.verdict === "doubtful").length],
-              ].map(([label, count]) => (
-                <li key={String(label)} style={{ display: "flex", justifyContent: "space-between", padding: "3px 0" }}>
-                  <span style={{ color: "var(--color-ink-soft)" }}>{label}</span>
-                  <span className="num">{count}</span>
-                </li>
-              ))}
-            </ul>
-            <p style={{ margin: "8px 0 0", fontSize: 11.5, color: "var(--color-ink-faint)" }}>
-              No listing is hidden for being doubtful. Each one keeps its reasons and its override.
-            </p>
-          </div>
-
-          <div className="card card-pad" style={{ background: "var(--color-accent-soft)", borderColor: "#bcd9cb" }}>
-            <p className="eyebrow" style={{ margin: 0, color: "var(--color-accent)" }}>
-              How the plan is built
-            </p>
-            <p style={{ margin: "6px 0 0", fontSize: 12.5, color: "#20463a" }}>{plan.rationale.join(" ")}</p>
-            <p className="mono-xs" style={{ margin: "8px 0 0", color: "#3c5f52" }}>
-              fit × trust ÷ minutes, then cut to your budget.
+            <p style={{ margin: 0, fontSize: 13, color: "var(--color-ink-soft)", lineHeight: 1.5 }}>
+              Focus on top-tier matches first. Personalizing your highlights and outreach message typically boosts response rates by up to 3x.
             </p>
           </div>
         </aside>

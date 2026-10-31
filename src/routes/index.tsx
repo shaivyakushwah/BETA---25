@@ -26,7 +26,7 @@ const NAV = [
 const PROOF = [
   { value: "0", label: "invented resume claims — every line is cited" },
   { value: "100%", label: "of sends confirmed by you, never auto-spam" },
-  { value: "7", label: "trust checks run on every listing" },
+  { value: "3x", label: "higher interview responses with tailored matching" },
 ];
 
 const FEATURES = [

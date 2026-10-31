@@ -29,7 +29,6 @@ function Listings() {
 
   const q = (first(params.q) ?? "").toLowerCase();
   const family = first(params.family) ?? "all";
-  const verdict = first(params.verdict) ?? "all";
   const showClosed = first(params.closed) === "1";
   const sort = first(params.sort) ?? "fit";
 
@@ -45,7 +44,6 @@ function Listings() {
   let items = ws.insights.filter((insight) => {
     if (!showClosed && isClosed(insight.job.id)) return false;
     if (family !== "all" && jobFamily(insight.job) !== family) return false;
-    if (verdict !== "all" && insight.trust.verdict !== verdict) return false;
     if (q) {
       const haystack = `${insight.job.title} ${insight.job.company} ${insight.job.location} ${insight.job.description}`.toLowerCase();
       if (!haystack.includes(q)) return false;
@@ -55,16 +53,12 @@ function Listings() {
 
   if (sort === "recent") {
     items = [...items].sort((a, b) => new Date(b.job.postedAt).getTime() - new Date(a.job.postedAt).getTime());
-  } else if (sort === "trust") {
-    items = [...items].sort((a, b) => b.trust.score - a.trust.score);
-  } else if (sort === "time") {
-    items = [...items].sort((a, b) => a.minutes - b.minutes);
   }
 
   const closedCount = ws.insights.filter((i) => isClosed(i.job.id)).length;
   const linkFor = (patch: Record<string, string>) => {
     const next = new URLSearchParams();
-    const current = { q, family, verdict, sort, closed: showClosed ? "1" : "", ...patch };
+    const current = { q, family, sort, closed: showClosed ? "1" : "", ...patch };
     for (const [key, value] of Object.entries(current)) if (value && value !== "all") next.set(key, value);
     const query = next.toString();
     return `/jobs${query ? `?${query}` : ""}`;
@@ -153,25 +147,12 @@ function Listings() {
             </select>
           </div>
           <div>
-            <label className="field" htmlFor="verdict">
-              Trust
-            </label>
-            <select className="select" id="verdict" name="verdict" defaultValue={verdict}>
-              <option value="all">Any</option>
-              <option value="clear">Clear</option>
-              <option value="check">Needs a check</option>
-              <option value="doubtful">Serious warnings</option>
-            </select>
-          </div>
-          <div>
             <label className="field" htmlFor="sort">
-              Sort
+              Sort By
             </label>
             <select className="select" id="sort" name="sort" defaultValue={sort}>
-              <option value="fit">Best fit</option>
-              <option value="recent">Newest</option>
-              <option value="trust">Most trustworthy</option>
-              <option value="time">Quickest to apply</option>
+              <option value="fit">Best Match</option>
+              <option value="recent">Most Recent</option>
             </select>
           </div>
           {showClosed ? <input type="hidden" name="closed" value="1" /> : null}

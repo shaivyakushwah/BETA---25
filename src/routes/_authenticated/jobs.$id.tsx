@@ -58,9 +58,7 @@ function Detail() {
           {job.title}
         </h1>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 14, alignItems: "center" }}>
-          <TrustPill trust={trust} />
           <span className="pill pill-neutral">{salary}</span>
-          <span className="pill pill-neutral">about {insight.minutes} min to apply</span>
           {job.coverLetterRequired ? <span className="pill pill-neutral">cover letter required</span> : null}
           {application ? <span className="pill pill-clear">application in progress</span> : null}
         </div>
@@ -220,41 +218,16 @@ function Detail() {
         </div>
 
         <aside>
-          <section className="card" style={{ padding: 18, marginBottom: 14 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-              <p className="eyebrow" style={{ margin: 0 }}>
-                Trust check
-              </p>
-              <span className="num" style={{ fontSize: 12, color: "var(--color-ink-faint)" }}>
-                {trust.score}/100
-              </span>
-            </div>
-            <p style={{ margin: "6px 0 0", fontSize: 15 }}>{VERDICT_COPY[trust.verdict].label}</p>
-            <p style={{ margin: "4px 0 0", fontSize: 12.5, color: "var(--color-ink-soft)" }}>
-              {trust.flags.length === 0
-                ? "No warning signs found in the checks we can run."
-                : `${trust.flags.length} signal(s) found. Each one names what we saw and what would settle it.`}
-            </p>
-
-            <div style={{ display: "grid", gap: 10, marginTop: 14 }}>
-              {trust.flags.map((flag) => (
-                <div key={flag.code} className="card" style={{ padding: "11px 12px", background: "#fbf9f2" }}>
-                  <span className="pill" style={{ ...SEVERITY_STYLE[flag.severity], fontSize: 10.5 }}>
-                    {flag.severity === "serious" ? "serious" : flag.severity === "caution" ? "check" : "note"}
-                  </span>
-                  <p style={{ margin: "6px 0 0", fontSize: 13, fontWeight: 550 }}>{flag.label}</p>
-                  <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--color-ink-soft)" }}>{flag.observed}</p>
-                  <p style={{ margin: "5px 0 0", fontSize: 12, color: "var(--color-ink-soft)" }}>{flag.why}</p>
-                  <p style={{ margin: "6px 0 0", fontSize: 12, color: "var(--color-accent)" }}>→ {flag.resolve}</p>
-                </div>
-              ))}
-            </div>
-
-            {duplicate ? (
-              <p style={{ margin: "12px 0 0", fontSize: 12.5 }}>
-                Compare with{" "}
+          {duplicate ? (
+            <section className="card" style={{ padding: 18, marginBottom: 14 }}>
+              <p style={{ margin: 0, fontSize: 12.5 }}>
+                Similar listing:{" "}
                 <Link href={`/jobs/${duplicate.job.id}`} className="link-underline">
                   {duplicate.job.title} at {duplicate.job.company}
+                </Link>
+              </p>
+            </section>
+          ) : null}
                 </Link>
                 .
               </p>

@@ -61,8 +61,7 @@ function Apply() {
           {job.title}
         </h1>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
-          <TrustPill trust={insight.trust} />
-          <span className="pill pill-neutral">{insight.fit.score}% fit</span>
+          <span className="pill pill-neutral">{insight.fit.score}% fit match</span>
           <span className="pill pill-neutral">{insight.fit.gaps.length} gap(s)</span>
           <span className="pill pill-neutral">{catalog.length} verified line(s)</span>
         </div>
