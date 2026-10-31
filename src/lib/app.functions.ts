@@ -15,7 +15,9 @@ import {
   providerStatus,
   scoreResumeWithGemini,
   selectHighlightLines,
+  tailorResumeWithGemini,
   type EmailDraftType,
+  type TailorResumeResult,
 } from "@/lib/gemini";
 import { resendStatus, sendEmailWithResend } from "@/lib/resend";
 import { buildWorkspace } from "@/lib/insights";
@@ -506,4 +508,35 @@ export const sendResendEmailFn = createServerFn({ method: "POST" }).middleware([
     if (!subject) return { ok: false, error: "Subject line cannot be empty." };
     if (!body) return { ok: false, error: "Email body cannot be empty." };
     return sendEmailWithResend({ to, subject, body, replyTo: replyTo || undefined });
+  });
+
+export const tailorResumeFn = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth])
+  .inputValidator(fieldsValidator)
+  .handler(async ({ data, context }): Promise<TailorResumeResult> => {
+    const formData = form(data);
+    const repo = repoFrom(context);
+    const resumeText = (await db.getResumeText(repo)) || String(formData.get("resumeText") || "");
+    const candidate = await db.getCandidate(repo);
+
+    const jobTitle = String(formData.get("jobTitle") || "Software Engineer");
+    const company = String(formData.get("company") || "Tech Company");
+    const jobDescription = String(formData.get("jobDescription") || "");
+    const requirements = String(formData.get("requirements") || "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    return tailorResumeWithGemini({
+      jobTitle,
+      company,
+      jobDescription,
+      requirements,
+      candidateName: candidate.name || String(formData.get("candidateName") || "Job Seeker"),
+      candidateEmail: candidate.email || String(formData.get("candidateEmail") || ""),
+      candidatePhone: String(formData.get("candidatePhone") || ""),
+      candidateLocation: candidate.location || String(formData.get("candidateLocation") || ""),
+      candidateLinkedin: String(formData.get("candidateLinkedin") || ""),
+      candidateHeadline: candidate.headline || "",
+      resumeText,
+    });
   });

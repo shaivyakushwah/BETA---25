@@ -8,6 +8,8 @@ import { skillLabel } from "@/lib/skills";
 import { VERDICT_COPY } from "@/lib/engines/trust";
 import { decideAction, startApplicationAction } from "@/app/actions";
 import { ConfidenceNote, FitScore, Meter, TrustPill } from "@/components/ui";
+import { ResumeTailorer } from "@/components/resume-tailorer";
+import { Sparkles } from "lucide-react";
 
 const SEVERITY_STYLE = {
   serious: { background: "var(--color-danger-soft)", color: "var(--color-danger)", borderColor: "#e6bdb5" },
@@ -64,13 +66,35 @@ function Detail() {
         </div>
       </header>
 
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 26 }}>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 26, alignItems: "center" }}>
         <form action={startApplicationAction}>
           <input type="hidden" name="jobId" value={job.id} />
           <button className="btn btn-accent" type="submit">
             {application ? "Open application" : "Start application"}
           </button>
         </form>
+        <button
+          type="button"
+          className="btn"
+          onClick={() => {
+            const el = document.getElementById("resume-tailorer-card");
+            if (el) el.scrollIntoView({ behavior: "smooth" });
+          }}
+          style={{
+            borderRadius: 999,
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            background: "#00D084",
+            color: "#003b26",
+            fontWeight: 700,
+            border: "none",
+            padding: "8px 18px",
+          }}
+        >
+          <Sparkles size={14} />
+          <span>Tailor Resume</span>
+        </button>
         <form action={decideAction}>
           <input type="hidden" name="jobId" value={job.id} />
           <input type="hidden" name="kind" value="maybe" />
@@ -218,6 +242,15 @@ function Detail() {
         </div>
 
         <aside>
+          <div id="resume-tailorer-card">
+            <ResumeTailorer
+              job={job}
+              candidate={ws.candidate}
+              resumeText={ws.resumeText}
+              initialMatchScore={fit.overall}
+            />
+          </div>
+
           {duplicate ? (
             <section className="card" style={{ padding: 18, marginBottom: 14 }}>
               <p style={{ margin: 0, fontSize: 12.5 }}>

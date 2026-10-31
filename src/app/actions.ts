@@ -22,6 +22,7 @@ import {
   saveProfileFn,
   scoreResumeFn,
   sendResendEmailFn,
+  tailorResumeFn,
   setHoursFn,
   setStatusFn,
   startApplicationFn,
@@ -30,7 +31,7 @@ import {
   type ImportState,
 } from "@/lib/app.functions";
 import type { EmailDraftResult } from "@/lib/gemini";
-import type { ResumeScoreResult } from "@/lib/gemini";
+import type { ResumeScoreResult, TailorResumeResult } from "@/lib/gemini";
 import type { SendEmailResult } from "@/lib/resend";
 import { go, refresh, toFields } from "@/lib/app-runtime";
 
@@ -153,4 +154,8 @@ export async function draftEmailAction(_prevState: unknown, formData: FormData):
 
 export async function sendResendEmailAction(_prevState: unknown, formData: FormData): Promise<SendEmailResult> {
   return sendResendEmailFn({ data: toFields(formData) });
+}
+
+export async function tailorResumeAction(formData: FormData): Promise<TailorResumeResult> {
+  return tailorResumeFn({ data: toFields(formData) });
 }
