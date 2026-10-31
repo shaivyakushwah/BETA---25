@@ -3,9 +3,9 @@ import { snapshotQuery, useSnapshot } from "@/lib/app-runtime";
 import { Suspense, useState, useEffect } from "react";
 import { getWorkspace } from "@/lib/insights";
 import { saveProfileAction } from "@/app/actions";
-import { skillLabel } from "@/lib/skills";
 import { ResumeUpload } from "@/components/resume-upload";
 import { ResumeScorer } from "@/components/resume-scorer";
+import type { ExtractedResumeData } from "@/lib/resume-parser";
 import {
   ShieldCheck,
   AlertCircle,
@@ -18,7 +18,8 @@ import {
   Sparkles,
   Zap,
   Check,
-  Plus,
+  CheckCircle2,
+  UploadCloud,
 } from "lucide-react";
 
 function Page() {
@@ -53,10 +54,30 @@ function Profile() {
   const candidate = ws.candidate;
   const [activeTab, setActiveTab] = useState<TabType>("personal");
 
+  // Controlled Profile States
+  const [candidateName, setCandidateName] = useState(candidate.name || "GAURI TIWARI");
+  const [candidateLocation, setCandidateLocation] = useState(candidate.location || "Laxmi Apartment, Gwalior, M.P");
+  const [candidateHeadline, setCandidateHeadline] = useState(
+    candidate.headline || "Electronics Engineering Student | Full Stack Developer"
+  );
+  const [personalPhone, setPersonalPhone] = useState("+91 9424473696");
+  const [personalEmail, setPersonalEmail] = useState(candidate.email || "tiwarigauriii30@gmail.com");
+  const [personalLinkedin, setPersonalLinkedin] = useState("https://www.linkedin.com/in/gauri-tiwari");
+  const [targetRolesStr, setTargetRolesStr] = useState(
+    candidate.targetRoles.join(", ") || "python, software engineer, intern, fullstack"
+  );
+  const [seniorityLevel, setSeniorityLevel] = useState(candidate.seniority || "junior");
+  const [hoursPerWeek, setHoursPerWeek] = useState(candidate.hoursPerWeek || 20);
+  const [minSalaryVal, setMinSalaryVal] = useState(candidate.minSalary ? String(candidate.minSalary) : "");
+  const [resumeContent, setResumeContent] = useState(ws.resumeText || "");
+
   // Editable personal info state
   const [isEditingPersonal, setIsEditingPersonal] = useState(false);
-  const [personalPhone, setPersonalPhone] = useState("+91 9424473696");
-  const [personalLinkedin, setPersonalLinkedin] = useState("https://www.linkedin.com/in/gauri-tiwari");
+
+  // Status & Notification banners
+  const [extractionAlert, setExtractionAlert] = useState<string | null>(null);
+  const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Editable Education state
   const [isEditingEducation, setIsEditingEducation] = useState(false);
@@ -82,27 +103,149 @@ function Profile() {
     },
   ]);
 
-  // Load saved education/experience from localStorage on mount
+  // Skills state
+  const [skillsList, setSkillsList] = useState<string[]>([
+    "Python", "React", "Next.js", "TypeScript", "JavaScript", "SQL", "Git", "REST APIs", "Machine Learning"
+  ]);
+
+  // Load saved education/experience/personal from localStorage on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
+      const savedName = localStorage.getItem("shortlist_profile_name");
+      if (savedName) setCandidateName(savedName);
+
+      const savedLoc = localStorage.getItem("shortlist_profile_location");
+      if (savedLoc) setCandidateLocation(savedLoc);
+
+      const savedHead = localStorage.getItem("shortlist_profile_headline");
+      if (savedHead) setCandidateHeadline(savedHead);
+
+      const savedPhone = localStorage.getItem("shortlist_profile_phone");
+      if (savedPhone) setPersonalPhone(savedPhone);
+
+      const savedEmail = localStorage.getItem("shortlist_profile_email");
+      if (savedEmail) setPersonalEmail(savedEmail);
+
+      const savedLi = localStorage.getItem("shortlist_profile_linkedin");
+      if (savedLi) setPersonalLinkedin(savedLi);
+
       const savedEdu = localStorage.getItem("shortlist_profile_education");
       if (savedEdu) {
         try {
-          setEducationList(JSON.parse(savedEdu));
+          const parsed = JSON.parse(savedEdu);
+          if (Array.isArray(parsed) && parsed.length > 0) setEducationList(parsed);
         } catch {}
       }
+
       const savedExp = localStorage.getItem("shortlist_profile_experience");
       if (savedExp) {
         try {
-          setExperienceList(JSON.parse(savedExp));
+          const parsed = JSON.parse(savedExp);
+          if (Array.isArray(parsed) && parsed.length > 0) setExperienceList(parsed);
         } catch {}
       }
-      const savedPhone = localStorage.getItem("shortlist_profile_phone");
-      if (savedPhone) setPersonalPhone(savedPhone);
-      const savedLi = localStorage.getItem("shortlist_profile_linkedin");
-      if (savedLi) setPersonalLinkedin(savedLi);
+
+      const savedSkills = localStorage.getItem("shortlist_profile_skills");
+      if (savedSkills) {
+        try {
+          const parsed = JSON.parse(savedSkills);
+          if (Array.isArray(parsed) && parsed.length > 0) setSkillsList(parsed);
+        } catch {}
+      }
     }
   }, []);
+
+  // Handler for structured resume extraction
+  function handleResumeExtracted(data: ExtractedResumeData) {
+    if (data.name) {
+      setCandidateName(data.name);
+      localStorage.setItem("shortlist_profile_name", data.name);
+    }
+    if (data.location) {
+      setCandidateLocation(data.location);
+      localStorage.setItem("shortlist_profile_location", data.location);
+    }
+    if (data.headline) {
+      setCandidateHeadline(data.headline);
+      localStorage.setItem("shortlist_profile_headline", data.headline);
+    }
+    if (data.phone) {
+      setPersonalPhone(data.phone);
+      localStorage.setItem("shortlist_profile_phone", data.phone);
+    }
+    if (data.email) {
+      setPersonalEmail(data.email);
+      localStorage.setItem("shortlist_profile_email", data.email);
+    }
+    if (data.linkedin) {
+      setPersonalLinkedin(data.linkedin);
+      localStorage.setItem("shortlist_profile_linkedin", data.linkedin);
+    }
+    if (data.targetRoles && data.targetRoles.length > 0) {
+      setTargetRolesStr(data.targetRoles.join(", "));
+    }
+    if (data.education && data.education.length > 0) {
+      setEducationList(data.education);
+      localStorage.setItem("shortlist_profile_education", JSON.stringify(data.education));
+    }
+    if (data.experience && data.experience.length > 0) {
+      setExperienceList(data.experience);
+      localStorage.setItem("shortlist_profile_experience", JSON.stringify(data.experience));
+    }
+    if (data.skills && data.skills.length > 0) {
+      setSkillsList(data.skills);
+      localStorage.setItem("shortlist_profile_skills", JSON.stringify(data.skills));
+    }
+    if (data.rawText) {
+      setResumeContent(data.rawText);
+    }
+
+    setExtractionAlert(
+      `Resume information extracted successfully for ${data.name || "candidate"}! Review the updated fields and click "Save Profile" below to persist changes.`
+    );
+  }
+
+  // Handle Save Profile
+  async function handleSaveProfile(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setIsSaving(true);
+    setSaveSuccessMsg(null);
+
+    try {
+      const formData = new FormData(e.currentTarget);
+      formData.set("name", candidateName);
+      formData.set("email", personalEmail);
+      formData.set("location", candidateLocation);
+      formData.set("headline", candidateHeadline);
+      formData.set("targetRoles", targetRolesStr);
+      formData.set("hours", String(hoursPerWeek));
+      formData.set("minSalary", minSalaryVal);
+      formData.set("seniority", seniorityLevel);
+      formData.set("resume", resumeContent);
+
+      // Persist to local storage
+      localStorage.setItem("shortlist_profile_name", candidateName);
+      localStorage.setItem("shortlist_profile_location", candidateLocation);
+      localStorage.setItem("shortlist_profile_headline", candidateHeadline);
+      localStorage.setItem("shortlist_profile_phone", personalPhone);
+      localStorage.setItem("shortlist_profile_email", personalEmail);
+      localStorage.setItem("shortlist_profile_linkedin", personalLinkedin);
+      localStorage.setItem("shortlist_profile_education", JSON.stringify(educationList));
+      localStorage.setItem("shortlist_profile_experience", JSON.stringify(experienceList));
+      localStorage.setItem("shortlist_profile_skills", JSON.stringify(skillsList));
+
+      // Persist to backend Supabase database
+      await saveProfileAction(formData);
+
+      setSaveSuccessMsg("✓ Profile and resume information saved successfully!");
+      setExtractionAlert(null);
+      setTimeout(() => setSaveSuccessMsg(null), 5000);
+    } catch (err: any) {
+      console.error("Save failed:", err);
+    } finally {
+      setIsSaving(false);
+    }
+  }
 
   function handleSaveEducation(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -120,6 +263,8 @@ function Profile() {
     if (typeof window !== "undefined") {
       localStorage.setItem("shortlist_profile_education", JSON.stringify(newList));
     }
+    setSaveSuccessMsg("Education details updated.");
+    setTimeout(() => setSaveSuccessMsg(null), 3500);
   }
 
   function handleSaveExperience(e: React.FormEvent<HTMLFormElement>) {
@@ -138,33 +283,104 @@ function Profile() {
     if (typeof window !== "undefined") {
       localStorage.setItem("shortlist_profile_experience", JSON.stringify(newList));
     }
+    setSaveSuccessMsg("Work experience details updated.");
+    setTimeout(() => setSaveSuccessMsg(null), 3500);
   }
-
-  const displayName = candidate.name && candidate.name !== "Job Seeker" ? candidate.name : "GAURI TIWARI";
-  const displayLocation = candidate.location || "Laxmi Apartment, Gwalior, M.P";
 
   return (
     <div>
-      {/* Top Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 800, margin: 0, letterSpacing: "-0.02em" }}>PROFILE</h1>
-        <div
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            background: "#dcfce7",
-            color: "#15803d",
-            padding: "6px 14px",
-            borderRadius: 999,
-            fontSize: 12.5,
-            fontWeight: 700,
-          }}
-        >
-          <Zap size={14} fill="#15803d" />
-          <span>Turbo for Students: Get Hired Faster! &rarr;</span>
+      {/* Top Header with Upload Resume Button */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 16,
+          flexWrap: "wrap",
+          gap: 14,
+        }}
+      >
+        <div>
+          <h1 style={{ fontSize: 24, fontWeight: 800, margin: 0, letterSpacing: "-0.02em" }}>PROFILE</h1>
+          <p style={{ margin: "4px 0 0", fontSize: 13, color: "#64748b" }}>
+            Keep your profile and resume updated to match relevant job opportunities.
+          </p>
+        </div>
+
+        {/* Prominent Upload Resume Button at Top */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <ResumeUpload
+            onExtracted={handleResumeExtracted}
+            buttonText="+ Upload Resume"
+            variant="primary"
+            showHelperText={false}
+          />
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              background: "#dcfce7",
+              color: "#15803d",
+              padding: "9px 16px",
+              borderRadius: 999,
+              fontSize: 12.5,
+              fontWeight: 700,
+            }}
+          >
+            <Zap size={14} fill="#15803d" />
+            <span>Turbo for Students: Get Hired Faster! &rarr;</span>
+          </div>
         </div>
       </div>
+
+      {/* Extraction Success Banner */}
+      {extractionAlert && (
+        <div
+          style={{
+            background: "#ecfdf5",
+            border: "1px solid #6ee7b7",
+            borderRadius: 12,
+            padding: "12px 16px",
+            marginBottom: 16,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <CheckCircle2 size={18} color="#059669" />
+            <span style={{ fontSize: 13, color: "#065f46", fontWeight: 600 }}>{extractionAlert}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setExtractionAlert(null)}
+            style={{ background: "none", border: "none", color: "#059669", cursor: "pointer", fontSize: 12 }}
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
+      {/* Save Success Banner */}
+      {saveSuccessMsg && (
+        <div
+          style={{
+            background: "#ecfdf5",
+            border: "1px solid #10b981",
+            borderRadius: 12,
+            padding: "12px 16px",
+            marginBottom: 16,
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+          }}
+        >
+          <CheckCircle2 size={18} color="#059669" />
+          <span style={{ fontSize: 13, color: "#065f46", fontWeight: 700 }}>{saveSuccessMsg}</span>
+        </div>
+      )}
 
       {/* Privacy Notice Banner */}
       <div className="jobright-secure-banner">
@@ -204,7 +420,7 @@ function Profile() {
           data-active={activeTab === "skills"}
           onClick={() => setActiveTab("skills")}
         >
-          Skills
+          Skills ({skillsList.length})
         </button>
         <button
           type="button"
@@ -227,10 +443,10 @@ function Profile() {
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                   <div>
                     <h2 style={{ fontSize: 26, fontWeight: 800, margin: 0, textTransform: "uppercase", letterSpacing: "-0.01em" }}>
-                      {displayName}
+                      {candidateName}
                     </h2>
                     <p style={{ margin: "4px 0 0", fontSize: 14, color: "#64748b" }}>
-                      {candidate.headline || "Electronics Engineering Student | Full Stack Developer"}
+                      {candidateHeadline}
                     </p>
                   </div>
                   <button
@@ -258,19 +474,71 @@ function Profile() {
                 {/* Inline contact editor when pencil is clicked */}
                 {isEditingPersonal ? (
                   <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 14, padding: "16px", marginBottom: 16 }}>
-                    <h4 style={{ margin: "0 0 12px", fontSize: 13.5, fontWeight: 700 }}>Edit Contact &amp; Links</h4>
+                    <h4 style={{ margin: "0 0 12px", fontSize: 13.5, fontWeight: 700 }}>Edit Contact &amp; Personal Info</h4>
                     <div style={{ display: "grid", gap: 10 }}>
+                      <div className="grid-2">
+                        <div>
+                          <label className="field">Candidate Name</label>
+                          <input
+                            className="input"
+                            value={candidateName}
+                            onChange={(e) => {
+                              setCandidateName(e.target.value);
+                              localStorage.setItem("shortlist_profile_name", e.target.value);
+                            }}
+                            placeholder="e.g. GAURI TIWARI"
+                          />
+                        </div>
+                        <div>
+                          <label className="field">Location</label>
+                          <input
+                            className="input"
+                            value={candidateLocation}
+                            onChange={(e) => {
+                              setCandidateLocation(e.target.value);
+                              localStorage.setItem("shortlist_profile_location", e.target.value);
+                            }}
+                            placeholder="e.g. Laxmi Apartment, Gwalior, M.P"
+                          />
+                        </div>
+                      </div>
                       <div>
-                        <label className="field">Phone Number</label>
+                        <label className="field">Headline</label>
                         <input
                           className="input"
-                          value={personalPhone}
+                          value={candidateHeadline}
                           onChange={(e) => {
-                            setPersonalPhone(e.target.value);
-                            localStorage.setItem("shortlist_profile_phone", e.target.value);
+                            setCandidateHeadline(e.target.value);
+                            localStorage.setItem("shortlist_profile_headline", e.target.value);
                           }}
-                          placeholder="+91 ..."
+                          placeholder="e.g. Electronics Engineering Student | Full Stack Developer"
                         />
+                      </div>
+                      <div className="grid-2">
+                        <div>
+                          <label className="field">Phone Number</label>
+                          <input
+                            className="input"
+                            value={personalPhone}
+                            onChange={(e) => {
+                              setPersonalPhone(e.target.value);
+                              localStorage.setItem("shortlist_profile_phone", e.target.value);
+                            }}
+                            placeholder="+91 ..."
+                          />
+                        </div>
+                        <div>
+                          <label className="field">Email Address</label>
+                          <input
+                            className="input"
+                            value={personalEmail}
+                            onChange={(e) => {
+                              setPersonalEmail(e.target.value);
+                              localStorage.setItem("shortlist_profile_email", e.target.value);
+                            }}
+                            placeholder="e.g. tiwarigauriii30@gmail.com"
+                          />
+                        </div>
                       </div>
                       <div>
                         <label className="field">LinkedIn URL</label>
@@ -303,11 +571,11 @@ function Profile() {
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 16 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "6px 12px", borderRadius: 999, fontSize: 12.5, color: "#334155" }}>
                     <MapPin size={13} color="#64748b" />
-                    <span>{displayLocation}</span>
+                    <span>{candidateLocation}</span>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "6px 12px", borderRadius: 999, fontSize: 12.5, color: "#334155" }}>
                     <Mail size={13} color="#64748b" />
-                    <span>{candidate.email || "tiwarigauriii30@gmail.com"}</span>
+                    <span>{personalEmail}</span>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "6px 12px", borderRadius: 999, fontSize: 12.5, color: "#334155" }}>
                     <Phone size={13} color="#64748b" />
@@ -330,27 +598,63 @@ function Profile() {
                 <h3 style={{ fontSize: 17, fontWeight: 700, margin: "0 0 18px", color: "#0f172a" }}>
                   Career Preferences &amp; Target Roles
                 </h3>
-                <form action={saveProfileAction} style={{ display: "grid", gap: 16 }}>
+                <form onSubmit={handleSaveProfile} style={{ display: "grid", gap: 16 }}>
                   <div className="grid-2">
                     <div>
                       <label className="field" htmlFor="name">
                         Full Name
                       </label>
-                      <input className="input" id="name" name="name" defaultValue={candidate.name || "GAURI TIWARI"} placeholder="e.g. GAURI TIWARI" />
+                      <input
+                        className="input"
+                        id="name"
+                        name="name"
+                        value={candidateName}
+                        onChange={(e) => setCandidateName(e.target.value)}
+                        placeholder="e.g. GAURI TIWARI"
+                      />
                     </div>
                     <div>
                       <label className="field" htmlFor="location">
                         Target Location
                       </label>
-                      <input className="input" id="location" name="location" defaultValue={candidate.location || "Laxmi Apartment, Gwalior, M.P"} placeholder="e.g. Gwalior, Remote" />
+                      <input
+                        className="input"
+                        id="location"
+                        name="location"
+                        value={candidateLocation}
+                        onChange={(e) => setCandidateLocation(e.target.value)}
+                        placeholder="e.g. Gwalior, Remote"
+                      />
                     </div>
                   </div>
 
-                  <div>
-                    <label className="field" htmlFor="headline">
-                      Professional Headline
-                    </label>
-                    <input className="input" id="headline" name="headline" defaultValue={candidate.headline || "Electronics Engineering Student | Full Stack Developer"} placeholder="e.g. Full Stack Developer | React, Python" />
+                  <div className="grid-2">
+                    <div>
+                      <label className="field" htmlFor="email">
+                        Contact Email
+                      </label>
+                      <input
+                        className="input"
+                        id="email"
+                        name="email"
+                        value={personalEmail}
+                        onChange={(e) => setPersonalEmail(e.target.value)}
+                        placeholder="e.g. candidate@example.com"
+                      />
+                    </div>
+                    <div>
+                      <label className="field" htmlFor="headline">
+                        Professional Headline
+                      </label>
+                      <input
+                        className="input"
+                        id="headline"
+                        name="headline"
+                        value={candidateHeadline}
+                        onChange={(e) => setCandidateHeadline(e.target.value)}
+                        placeholder="e.g. Full Stack Developer | React, Python"
+                      />
+                    </div>
                   </div>
 
                   <div className="grid-3">
@@ -358,7 +662,13 @@ function Profile() {
                       <label className="field" htmlFor="seniority">
                         Experience Level
                       </label>
-                      <select className="select" id="seniority" name="seniority" defaultValue={candidate.seniority}>
+                      <select
+                        className="select"
+                        id="seniority"
+                        name="seniority"
+                        value={seniorityLevel}
+                        onChange={(e) => setSeniorityLevel(e.target.value as any)}
+                      >
                         <option value="intern">Intern / Placement</option>
                         <option value="junior">Junior / Graduate</option>
                         <option value="mid">Mid-Level</option>
@@ -369,7 +679,16 @@ function Profile() {
                       <label className="field" htmlFor="hours">
                         Hours / Week
                       </label>
-                      <input className="input" id="hours" name="hours" type="number" min={1} max={40} defaultValue={candidate.hoursPerWeek} />
+                      <input
+                        className="input"
+                        id="hours"
+                        name="hours"
+                        type="number"
+                        min={1}
+                        max={40}
+                        value={hoursPerWeek}
+                        onChange={(e) => setHoursPerWeek(Number(e.target.value))}
+                      />
                     </div>
                     <div>
                       <label className="field" htmlFor="minSalary">
@@ -382,7 +701,8 @@ function Profile() {
                         type="number"
                         step={1000}
                         placeholder="e.g. 60000"
-                        defaultValue={candidate.minSalary ?? ""}
+                        value={minSalaryVal}
+                        onChange={(e) => setMinSalaryVal(e.target.value)}
                       />
                     </div>
                   </div>
@@ -391,23 +711,53 @@ function Profile() {
                     <label className="field" htmlFor="targetRoles">
                       Target Role Families (comma separated)
                     </label>
-                    <input className="input" id="targetRoles" name="targetRoles" defaultValue={candidate.targetRoles.join(", ") || "python, software engineer, intern, fullstack"} placeholder="python, software engineer, intern, fullstack" />
+                    <input
+                      className="input"
+                      id="targetRoles"
+                      name="targetRoles"
+                      value={targetRolesStr}
+                      onChange={(e) => setTargetRolesStr(e.target.value)}
+                      placeholder="python, software engineer, intern, fullstack"
+                    />
                   </div>
 
                   <div>
-                    <label className="field" htmlFor="resume">
-                      Resume Text (Pasted or extracted from PDF)
-                    </label>
-                    <div style={{ marginBottom: 10 }}>
-                      <ResumeUpload />
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                      <label className="field" htmlFor="resume" style={{ margin: 0 }}>
+                        Resume Text (Extracted automatically from PDF/TXT upload)
+                      </label>
+                      <ResumeUpload
+                        onExtracted={handleResumeExtracted}
+                        buttonText="Re-upload Resume"
+                        variant="secondary"
+                        showHelperText={false}
+                      />
                     </div>
-                    <textarea className="textarea" id="resume" name="resume" rows={12} defaultValue={ws.resumeText} placeholder="Upload your resume above or paste resume text here..." />
+                    <textarea
+                      className="textarea"
+                      id="resume"
+                      name="resume"
+                      rows={10}
+                      value={resumeContent}
+                      onChange={(e) => setResumeContent(e.target.value)}
+                      placeholder="Upload your resume above or paste resume text here..."
+                    />
                   </div>
 
-                  <div>
-                    <button className="btn btn-primary" type="submit" style={{ borderRadius: 999, padding: "11px 24px" }}>
-                      Save Profile
+                  <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                    <button
+                      className="btn btn-primary"
+                      type="submit"
+                      disabled={isSaving}
+                      style={{ borderRadius: 999, padding: "11px 28px", fontWeight: 700 }}
+                    >
+                      {isSaving ? "Saving changes..." : "Save Profile"}
                     </button>
+                    {saveSuccessMsg && (
+                      <span style={{ fontSize: 13, color: "#059669", fontWeight: 600 }}>
+                        {saveSuccessMsg}
+                      </span>
+                    )}
                   </div>
                 </form>
               </div>
@@ -420,7 +770,7 @@ function Profile() {
                     AI Resume Scoring &amp; Optimization
                   </h3>
                 </div>
-                <ResumeScorer initialTargetRole={candidate.targetRoles[0] || "Python Engineer"} />
+                <ResumeScorer initialTargetRole={targetRolesStr.split(",")[0]?.trim() || "Python Engineer"} />
               </div>
             </div>
           )}
@@ -428,7 +778,12 @@ function Profile() {
           {activeTab === "education" && (
             <div className="card" style={{ padding: "28px", borderRadius: 20 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-                <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>Education</h3>
+                <div>
+                  <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>Education</h3>
+                  <p style={{ margin: "2px 0 0", fontSize: 12.5, color: "#64748b" }}>
+                    Extracted from your resume or edited manually.
+                  </p>
+                </div>
                 <button
                   type="button"
                   onClick={() => setIsEditingEducation(!isEditingEducation)}
@@ -490,31 +845,38 @@ function Profile() {
                 </form>
               ) : null}
 
-              {/* Education Display Card */}
-              {educationList.map((edu) => (
-                <div key={edu.id} style={{ borderLeft: "2px solid #e2e8f0", paddingLeft: 18, marginLeft: 6, position: "relative" }}>
-                  <div style={{ position: "absolute", left: -6, top: 4, width: 10, height: 10, borderRadius: "50%", background: "#059669" }} />
-                  <p style={{ margin: "0 0 4px", fontSize: 12.5, fontWeight: 600, color: "#64748b" }}>
-                    {edu.dates}
-                  </p>
-                  <h4 style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 700, color: "#0f172a" }}>
-                    {edu.degree}
-                  </h4>
-                  <p style={{ margin: "0 0 6px", fontSize: 14, color: "#334155", fontWeight: 500 }}>
-                    {edu.institution}
-                  </p>
-                  <p style={{ margin: 0, fontSize: 13, color: "#64748b", lineHeight: 1.5 }}>
-                    {edu.details}
-                  </p>
-                </div>
-              ))}
+              {/* Education Display Cards */}
+              <div style={{ display: "grid", gap: 18 }}>
+                {educationList.map((edu) => (
+                  <div key={edu.id} style={{ borderLeft: "2px solid #e2e8f0", paddingLeft: 18, marginLeft: 6, position: "relative" }}>
+                    <div style={{ position: "absolute", left: -6, top: 4, width: 10, height: 10, borderRadius: "50%", background: "#059669" }} />
+                    <p style={{ margin: "0 0 4px", fontSize: 12.5, fontWeight: 600, color: "#64748b" }}>
+                      {edu.dates}
+                    </p>
+                    <h4 style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 700, color: "#0f172a" }}>
+                      {edu.degree}
+                    </h4>
+                    <p style={{ margin: "0 0 6px", fontSize: 14, color: "#334155", fontWeight: 500 }}>
+                      {edu.institution}
+                    </p>
+                    <p style={{ margin: 0, fontSize: 13, color: "#64748b", lineHeight: 1.5 }}>
+                      {edu.details}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
           {activeTab === "experience" && (
             <div className="card" style={{ padding: "28px", borderRadius: 20 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-                <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>Work Experience &amp; Projects</h3>
+                <div>
+                  <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>Work Experience &amp; Projects</h3>
+                  <p style={{ margin: "2px 0 0", fontSize: 12.5, color: "#64748b" }}>
+                    Extracted from your resume or edited manually.
+                  </p>
+                </div>
                 <button
                   type="button"
                   onClick={() => setIsEditingExperience(!isEditingExperience)}
@@ -576,35 +938,44 @@ function Profile() {
                 </form>
               ) : null}
 
-              {/* Experience Display Card */}
-              {experienceList.map((exp) => (
-                <div key={exp.id} style={{ borderLeft: "2px solid #e2e8f0", paddingLeft: 18, marginLeft: 6, position: "relative" }}>
-                  <div style={{ position: "absolute", left: -6, top: 4, width: 10, height: 10, borderRadius: "50%", background: "#2563eb" }} />
-                  <p style={{ margin: "0 0 4px", fontSize: 12.5, fontWeight: 600, color: "#64748b" }}>
-                    {exp.dates}
-                  </p>
-                  <h4 style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 700, color: "#0f172a" }}>
-                    {exp.title}
-                  </h4>
-                  <p style={{ margin: "0 0 6px", fontSize: 13.5, color: "#475569", fontWeight: 500 }}>
-                    {exp.organization}
-                  </p>
-                  <p style={{ margin: 0, fontSize: 13, color: "#64748b", lineHeight: 1.5 }}>
-                    {exp.description}
-                  </p>
-                </div>
-              ))}
+              {/* Experience Display Cards */}
+              <div style={{ display: "grid", gap: 18 }}>
+                {experienceList.map((exp) => (
+                  <div key={exp.id} style={{ borderLeft: "2px solid #e2e8f0", paddingLeft: 18, marginLeft: 6, position: "relative" }}>
+                    <div style={{ position: "absolute", left: -6, top: 4, width: 10, height: 10, borderRadius: "50%", background: "#2563eb" }} />
+                    <p style={{ margin: "0 0 4px", fontSize: 12.5, fontWeight: 600, color: "#64748b" }}>
+                      {exp.dates}
+                    </p>
+                    <h4 style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 700, color: "#0f172a" }}>
+                      {exp.title}
+                    </h4>
+                    <p style={{ margin: "0 0 6px", fontSize: 13.5, color: "#475569", fontWeight: 500 }}>
+                      {exp.organization}
+                    </p>
+                    <p style={{ margin: 0, fontSize: 13, color: "#64748b", lineHeight: 1.5 }}>
+                      {exp.description}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
           {activeTab === "skills" && (
             <div className="card" style={{ padding: "28px", borderRadius: 20 }}>
-              <h3 style={{ fontSize: 18, fontWeight: 800, margin: "0 0 16px" }}>Skills</h3>
-              <p style={{ fontSize: 13, color: "#64748b", margin: "0 0 16px" }}>
-                Technical and role-specific skills associated with your candidate profile:
-              </p>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                <div>
+                  <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>Skills</h3>
+                  <p style={{ fontSize: 13, color: "#64748b", margin: "2px 0 0" }}>
+                    Technical and domain skills extracted from your resume:
+                  </p>
+                </div>
+                <span className="badge" style={{ background: "#ecfdf5", color: "#065f46" }}>
+                  {skillsList.length} Extracted Skills
+                </span>
+              </div>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                {["Python", "React", "Next.js", "TypeScript", "JavaScript", "SQL", "Git", "REST APIs", "Machine Learning"].map((skill) => (
+                {skillsList.map((skill) => (
                   <span
                     key={skill}
                     style={{
@@ -680,7 +1051,10 @@ function Profile() {
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               <button
                 type="button"
-                onClick={() => setActiveTab("personal")}
+                onClick={() => {
+                  const fileBtn = document.querySelector('button[title="Upload resume"], button:has(svg)') as HTMLElement;
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -709,6 +1083,7 @@ function Profile() {
                 onClick={() => {
                   setActiveTab("personal");
                   setIsEditingPersonal(true);
+                  window.scrollTo({ top: 100, behavior: "smooth" });
                 }}
                 style={{
                   display: "flex",

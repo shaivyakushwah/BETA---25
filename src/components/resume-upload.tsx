@@ -1,5 +1,6 @@
-
 import { useState, useRef } from "react";
+import { UploadCloud, CheckCircle2, AlertCircle } from "lucide-react";
+import { parseResumeText, type ExtractedResumeData } from "@/lib/resume-parser";
 
 /** Reads the text of a PDF in the browser, line by line. */
 async function extractPdfText(file: File): Promise<{ text: string; lines: number }> {
@@ -25,7 +26,19 @@ async function extractPdfText(file: File): Promise<{ text: string; lines: number
   return { text: out.join("\n"), lines: out.length };
 }
 
-export function ResumeUpload() {
+interface ResumeUploadProps {
+  onExtracted?: (data: ExtractedResumeData) => void;
+  buttonText?: string;
+  variant?: "primary" | "secondary" | "compact";
+  showHelperText?: boolean;
+}
+
+export function ResumeUpload({
+  onExtracted,
+  buttonText = "Upload Resume (.PDF / .TXT)",
+  variant = "secondary",
+  showHelperText = true,
+}: ResumeUploadProps) {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -46,16 +59,34 @@ export function ResumeUpload() {
     setLoading(true);
 
     try {
+      let rawText = "";
       if (isText) {
-        const text = await file.text();
-        populateTextarea(text);
-        setStatus(`Imported ${file.name} (${text.split("\n").length} lines)`);
+        rawText = await file.text();
       } else if (isPdf) {
         setStatus(`Extracting text from ${file.name}...`);
         const data = await extractPdfText(file);
-        populateTextarea(data.text);
-        setStatus(`Extracted ${data.lines} lines from ${file.name}`);
+        rawText = data.text;
       }
+
+      // Populate textarea if present in DOM
+      populateTextarea(rawText);
+
+      // Parse structured data
+      const parsed = parseResumeText(rawText);
+
+      if (onExtracted) {
+        onExtracted(parsed);
+      }
+
+      const summaryParts: string[] = [];
+      if (parsed.name) summaryParts.push(parsed.name);
+      if (parsed.education.length > 0) summaryParts.push("Education");
+      if (parsed.experience.length > 0) summaryParts.push("Experience");
+      if (parsed.skills.length > 0) summaryParts.push(`${parsed.skills.length} Skills`);
+
+      setStatus(
+        `Extracted successfully: ${summaryParts.join(" • ")}. Click "Save Profile" to keep changes.`
+      );
     } catch (err: any) {
       setError(err?.message || "Failed to process resume file");
     } finally {
@@ -73,7 +104,7 @@ export function ResumeUpload() {
   };
 
   return (
-    <div style={{ marginBottom: 10 }}>
+    <div style={{ display: "inline-block" }}>
       <input
         ref={fileInputRef}
         type="file"
@@ -84,30 +115,94 @@ export function ResumeUpload() {
           if (file) handleFile(file);
         }}
       />
-      <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+
+      <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
         <button
           type="button"
-          className="btn btn-sm"
           disabled={loading}
           onClick={() => fileInputRef.current?.click()}
+          style={
+            variant === "primary"
+              ? {
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  background: "#00D084",
+                  color: "#003b26",
+                  border: "none",
+                  borderRadius: 999,
+                  padding: "9px 18px",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: loading ? "wait" : "pointer",
+                  boxShadow: "0 2px 8px rgba(0, 208, 132, 0.28)",
+                  transition: "all 160ms ease",
+                }
+              : {
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 7,
+                  background: "#f8fafc",
+                  color: "#0f172a",
+                  border: "1px solid #cbd5e1",
+                  borderRadius: 999,
+                  padding: "7px 14px",
+                  fontSize: 12.5,
+                  fontWeight: 600,
+                  cursor: loading ? "wait" : "pointer",
+                }
+          }
         >
-          {loading ? "Extracting text..." : "Upload Resume (.PDF / .TXT)"}
+          <UploadCloud size={16} strokeWidth={2.2} />
+          <span>{loading ? "Extracting info..." : buttonText}</span>
         </button>
-        <span className="mono-xs" style={{ color: "var(--color-ink-faint)" }}>
-          Drag-and-drop or click to import lines automatically
-        </span>
+
+        {showHelperText && (
+          <span className="mono-xs" style={{ color: "var(--color-ink-faint)", fontSize: 11.5 }}>
+            Auto-extracts name, contact, education &amp; experience
+          </span>
+        )}
       </div>
 
       {status && (
-        <p className="mono-xs" style={{ color: "var(--color-success, #2a8)", marginTop: 6, marginBottom: 0 }}>
-          {status}
-        </p>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            background: "#ecfdf5",
+            border: "1px solid #a7f3d0",
+            color: "#065f46",
+            padding: "6px 12px",
+            borderRadius: 8,
+            fontSize: 12,
+            marginTop: 8,
+            fontWeight: 500,
+          }}
+        >
+          <CheckCircle2 size={15} color="#059669" />
+          <span>{status}</span>
+        </div>
       )}
 
       {error && (
-        <p className="mono-xs" style={{ color: "var(--color-danger, #c33)", marginTop: 6, marginBottom: 0 }}>
-          {error}
-        </p>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            background: "#fef2f2",
+            border: "1px solid #fecaca",
+            color: "#991b1b",
+            padding: "6px 12px",
+            borderRadius: 8,
+            fontSize: 12,
+            marginTop: 8,
+          }}
+        >
+          <AlertCircle size={15} color="#dc2626" />
+          <span>{error}</span>
+        </div>
       )}
     </div>
   );

@@ -8,7 +8,8 @@ import { getWorkspace } from "@/lib/insights";
 import { listProposals } from "@/lib/db";
 import { providerStatus, resendStatus } from "@/lib/status";
 import { useSnapshot } from "@/lib/app-runtime";
-import Link from "@/lib/next-compat";
+import Link, { usePathname } from "@/lib/next-compat";
+import { ShieldCheck } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -103,9 +104,31 @@ function SidebarFooter() {
   const pending = listProposals().filter((p) => p.state === "pending").length;
   const provider = providerStatus();
   const resend = resendStatus();
+  const pathname = usePathname();
 
   return (
     <div style={{ marginTop: "auto", paddingTop: 16 }}>
+      {/* Settings & Privacy pinned to bottom of the left bar */}
+      <div style={{ marginBottom: 14 }}>
+        <Link
+          href="/privacy"
+          className="nav-link"
+          data-active={pathname === "/privacy"}
+          style={{
+            padding: "9px 12px",
+            fontSize: 13,
+            borderRadius: 10,
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            fontWeight: 600,
+          }}
+        >
+          <ShieldCheck size={16} strokeWidth={1.75} aria-hidden />
+          <span>Settings &amp; Privacy</span>
+        </Link>
+      </div>
+
       {pending > 0 ? (
         <div
           style={{

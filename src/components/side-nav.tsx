@@ -1,13 +1,12 @@
 import Link from "@/lib/next-compat";
 import { usePathname } from "@/lib/next-compat";
-import { Target, Briefcase, KanbanSquare, Inbox, UserRound, ShieldCheck, type LucideIcon } from "lucide-react";
+import { Target, Briefcase, KanbanSquare, Inbox, UserRound, type LucideIcon } from "lucide-react";
 
 const GROUPS: { label: string; items: { href: string; label: string; icon: LucideIcon }[] }[] = [
   {
     label: "My Account",
     items: [
       { href: "/profile", label: "Profile & Resume", icon: UserRound },
-      { href: "/privacy", label: "Settings & Privacy", icon: ShieldCheck },
     ],
   },
   {

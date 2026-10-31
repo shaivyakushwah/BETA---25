@@ -267,6 +267,7 @@ export const saveProfileFn = createServerFn({ method: "POST" }).middleware([requ
       .filter(Boolean);
     await db.updateCandidate(repo, {
       name: String(formData.get("name") ?? candidate.name),
+      email: String(formData.get("email") ?? candidate.email),
       location: String(formData.get("location") ?? candidate.location),
       headline: String(formData.get("headline") ?? candidate.headline),
       hoursPerWeek: Math.max(1, Math.min(40, Number(formData.get("hours")) || candidate.hoursPerWeek)),
