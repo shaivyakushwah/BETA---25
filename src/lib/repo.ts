@@ -172,6 +172,25 @@ export async function setDecision(repo: Repo, jobId: string, kind: Decision["kin
     check(await repo.sb.from("decisions").delete().eq("user_id", repo.uid).eq("job_id", jobId));
     return;
   }
+  // Ensure the job row exists in public.jobs so the foreign key constraint never fails
+  const existing = await repo.sb.from("jobs").select("id").eq("user_id", repo.uid).eq("id", jobId).maybeSingle();
+  if (!existing?.data) {
+    await repo.sb.from("jobs").upsert({
+      user_id: repo.uid,
+      id: jobId,
+      title: "Job Listing",
+      company: "Company",
+      location: "Remote",
+      work_mode: "remote",
+      seniority: "mid",
+      currency: "GBP",
+      description: "",
+      requirements: [],
+      posted_at: new Date().toISOString(),
+      repost_count: 0,
+      source: "direct",
+    });
+  }
   check(
     await repo.sb
       .from("decisions")

@@ -1,15 +1,15 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { snapshotQuery, useSnapshot } from "@/lib/app-runtime";
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import Link from "@/lib/next-compat";
 import { getWorkspace } from "@/lib/insights";
 import { findApplicationByJob } from "@/lib/db";
 import { skillLabel } from "@/lib/skills";
 import { VERDICT_COPY } from "@/lib/engines/trust";
-import { decideAction, startApplicationAction } from "@/app/actions";
+import { decideAction, clearDecisionAction, startApplicationAction } from "@/app/actions";
 import { ConfidenceNote, FitScore, Meter, TrustPill } from "@/components/ui";
 import { ResumeTailorer } from "@/components/resume-tailorer";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Bookmark, BookmarkCheck, Ban, RotateCcw, Loader2, Check } from "lucide-react";
 
 const SEVERITY_STYLE = {
   serious: { background: "var(--color-danger-soft)", color: "var(--color-danger)", borderColor: "#e6bdb5" },
@@ -36,6 +36,59 @@ function Detail() {
   const application = findApplicationByJob(job.id);
   const duplicate = trust.duplicateOf ? ws.byId.get(trust.duplicateOf) : null;
 
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSkipping, setIsSkipping] = useState(false);
+  const [toast, setToast] = useState<{ type: "success" | "info"; message: string } | null>(null);
+
+  const isSavedForLater = insight.decision === "maybe";
+  const isSkipped = insight.decision === "skip";
+
+  async function handleToggleKeepForLater() {
+    if (isSaving || isSkipping) return;
+    setIsSaving(true);
+    try {
+      const fd = new FormData();
+      fd.set("jobId", job.id);
+      if (isSavedForLater) {
+        await clearDecisionAction(fd);
+        setToast({ type: "info", message: "Removed from your saved shortlist." });
+      } else {
+        fd.set("kind", "maybe");
+        fd.set("reason", "Shortlisted for a later week");
+        await decideAction(fd);
+        setToast({ type: "success", message: "Job saved for later! View in Weekly Sprint." });
+      }
+    } catch (err) {
+      console.error("Keep for later action failed", err);
+      setToast({ type: "info", message: "Could not update status. Please try again." });
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function handleToggleSkip() {
+    if (isSaving || isSkipping) return;
+    setIsSkipping(true);
+    try {
+      const fd = new FormData();
+      fd.set("jobId", job.id);
+      if (isSkipped) {
+        await clearDecisionAction(fd);
+        setToast({ type: "info", message: "Job restored to active opportunities." });
+      } else {
+        fd.set("kind", "skip");
+        fd.set("reason", "Skipped from the listing page");
+        await decideAction(fd);
+        setToast({ type: "info", message: "Job marked as skipped." });
+      }
+    } catch (err) {
+      console.error("Skip action failed", err);
+      setToast({ type: "info", message: "Could not skip listing. Please try again." });
+    } finally {
+      setIsSkipping(false);
+    }
+  }
+
   const salary =
     job.salaryMin && job.salaryMax
       ? `£${job.salaryMin.toLocaleString()}–${job.salaryMax.toLocaleString()}`
@@ -52,6 +105,76 @@ function Detail() {
         <span style={{ color: "var(--color-ink-faint)" }}> · {job.sourceUrl ? "Direct Posting" : "Verified Network"}</span>
       </p>
 
+      {/* Skipped Alert Banner */}
+      {isSkipped && (
+        <div
+          style={{
+            background: "#fef2f2",
+            border: "1px solid #fecaca",
+            borderRadius: 12,
+            padding: "10px 16px",
+            marginBottom: 16,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            fontSize: 13,
+            color: "#991b1b",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <Ban size={15} />
+            <span>This job is marked as skipped and hidden from your active planning.</span>
+          </div>
+          <button
+            type="button"
+            onClick={handleToggleSkip}
+            disabled={isSkipping}
+            style={{
+              background: "#ffffff",
+              border: "1px solid #fca5a5",
+              color: "#991b1b",
+              borderRadius: 999,
+              padding: "4px 12px",
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
+          >
+            {isSkipping ? "Restoring..." : "Undo Skip"}
+          </button>
+        </div>
+      )}
+
+      {/* Toast Feedback Notice */}
+      {toast && (
+        <div
+          style={{
+            background: toast.type === "success" ? "#f0fdf4" : "#f8fafc",
+            border: `1px solid ${toast.type === "success" ? "#bbf7d0" : "#cbd5e1"}`,
+            color: toast.type === "success" ? "#166534" : "#334155",
+            borderRadius: 10,
+            padding: "8px 14px",
+            marginBottom: 16,
+            fontSize: 13,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            {toast.type === "success" ? <Check size={14} color="#166534" /> : null}
+            <span>{toast.message}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setToast(null)}
+            style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16, color: "inherit", padding: 0 }}
+          >
+            &times;
+          </button>
+        </div>
+      )}
+
       <header style={{ marginBottom: 22 }}>
         <p className="eyebrow" style={{ margin: 0 }}>
           {job.company} · {job.location} · {job.workMode} · {job.seniority}
@@ -63,16 +186,58 @@ function Detail() {
           <span className="pill pill-neutral">{salary}</span>
           {job.coverLetterRequired ? <span className="pill pill-neutral">cover letter required</span> : null}
           {application ? <span className="pill pill-clear">application in progress</span> : null}
+          {isSavedForLater && (
+            <span
+              className="pill"
+              style={{
+                background: "#ecfdf5",
+                color: "#065f46",
+                borderColor: "#a7f3d0",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 4,
+                fontWeight: 600,
+              }}
+            >
+              <BookmarkCheck size={12} />
+              <span>saved for later</span>
+            </span>
+          )}
+          {isSkipped && (
+            <span
+              className="pill"
+              style={{
+                background: "#fef2f2",
+                color: "#991b1b",
+                borderColor: "#fecaca",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 4,
+                fontWeight: 600,
+              }}
+            >
+              <Ban size={12} />
+              <span>skipped</span>
+            </span>
+          )}
         </div>
       </header>
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 26, alignItems: "center" }}>
-        <form action={startApplicationAction}>
+        <form
+          action={startApplicationAction}
+          onSubmit={async (e) => {
+            e.preventDefault();
+            const fd = new FormData(e.currentTarget);
+            await startApplicationAction(fd);
+          }}
+        >
           <input type="hidden" name="jobId" value={job.id} />
           <button className="btn btn-accent" type="submit">
             {application ? "Open application" : "Start application"}
           </button>
         </form>
+
         <button
           type="button"
           className="btn"
@@ -95,22 +260,68 @@ function Detail() {
           <Sparkles size={14} />
           <span>Tailor Resume</span>
         </button>
-        <form action={decideAction}>
-          <input type="hidden" name="jobId" value={job.id} />
-          <input type="hidden" name="kind" value="maybe" />
-          <input type="hidden" name="reason" value="Shortlisted for a later week" />
-          <button className="btn" type="submit">
-            Keep for later
-          </button>
-        </form>
-        <form action={decideAction} style={{ display: "flex", gap: 6 }}>
-          <input type="hidden" name="jobId" value={job.id} />
-          <input type="hidden" name="kind" value="skip" />
-          <input type="hidden" name="reason" value="Skipped from the listing page" />
-          <button className="btn" type="submit">
-            Skip this one
-          </button>
-        </form>
+
+        {/* Keep for Later Button */}
+        <button
+          type="button"
+          className="btn"
+          onClick={handleToggleKeepForLater}
+          disabled={isSaving}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            borderRadius: 999,
+            padding: "8px 18px",
+            fontWeight: 600,
+            background: isSavedForLater ? "#ecfdf5" : "var(--color-bg-card, #ffffff)",
+            color: isSavedForLater ? "#065f46" : "var(--color-ink, #0f172a)",
+            borderColor: isSavedForLater ? "#86efac" : "var(--color-border, #cbd5e1)",
+            boxShadow: isSavedForLater ? "0 1px 3px rgba(16, 185, 129, 0.15)" : "none",
+            cursor: isSaving ? "wait" : "pointer",
+          }}
+          title={isSavedForLater ? "Click to remove from saved shortlist" : "Save this job to review later"}
+        >
+          {isSaving ? (
+            <Loader2 size={14} className="animate-spin" />
+          ) : isSavedForLater ? (
+            <BookmarkCheck size={14} color="#059669" />
+          ) : (
+            <Bookmark size={14} />
+          )}
+          <span>{isSaving ? "Updating..." : isSavedForLater ? "✓ Kept for later" : "Keep for later"}</span>
+        </button>
+
+        {/* Skip this one Button */}
+        <button
+          type="button"
+          className="btn"
+          onClick={handleToggleSkip}
+          disabled={isSkipping}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            borderRadius: 999,
+            padding: "8px 18px",
+            fontWeight: 600,
+            background: isSkipped ? "#fef2f2" : "var(--color-bg-card, #ffffff)",
+            color: isSkipped ? "#991b1b" : "var(--color-ink, #0f172a)",
+            borderColor: isSkipped ? "#fecaca" : "var(--color-border, #cbd5e1)",
+            cursor: isSkipping ? "wait" : "pointer",
+          }}
+          title={isSkipped ? "Click to restore this job" : "Skip this job from recommendations"}
+        >
+          {isSkipping ? (
+            <Loader2 size={14} className="animate-spin" />
+          ) : isSkipped ? (
+            <RotateCcw size={14} />
+          ) : (
+            <Ban size={14} />
+          )}
+          <span>{isSkipping ? "Updating..." : isSkipped ? "✓ Skipped (Undo)" : "Skip this one"}</span>
+        </button>
+
         {job.sourceUrl ? (
           <a className="btn" href={job.sourceUrl} target="_blank" rel="noreferrer noopener">
             Open original ↗
