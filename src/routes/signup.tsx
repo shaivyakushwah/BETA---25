@@ -3,7 +3,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import Link from "@/lib/next-compat";
 import { useActionState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { go } from "@/lib/app-runtime";
 
 type AuthState = { error?: string; message?: string } | null;
@@ -140,20 +139,6 @@ function Page() {
             {pending ? "Creating account…" : "Create Free Account"}
           </button>
         </form>
-
-        <div className="mt-4">
-          <button
-            type="button"
-            onClick={async () => {
-              const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + "/login" });
-              if (result.error) { alert(result.error.message ?? "Google sign-in failed"); return; }
-              if (!result.redirected) go("/sprint");
-            }}
-            className="w-full py-3 px-4 rounded-full border border-line bg-surface hover:bg-slate-50 text-ink font-bold text-sm transition-all"
-          >
-            Continue with Google
-          </button>
-        </div>
 
         <div className="mt-6 pt-5 border-t border-line text-center text-xs text-ink-soft">
           Already have an account?{" "}
